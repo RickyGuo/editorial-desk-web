@@ -1,0 +1,529 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>编辑部协作台</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Manrope:wght@400;500;600;700;800&display=swap">
+<style>
+  :root{
+    --paper:#F3F4F6; --paper-raised:#FFFFFF; --ink:#14171C; --ink-dim:#5B6270;
+    --line:#DCDFE4; --accent:#3454D1; --accent-ink:#EBEFFC;
+    --mark:#C0392B; --mark-ink:#FBEAE8; --done:#2F9E44; --done-ink:#E6F6E9;
+    --shadow:0 1px 2px rgba(20,23,28,.06),0 6px 16px rgba(20,23,28,.06);
+    --radius:14px; --radius-sm:10px;
+    color-scheme:light;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --paper:#15171B; --paper-raised:#1E2126; --ink:#ECEDEF; --ink-dim:#9BA1AC;
+      --line:#2C3038; --accent:#8598F5; --accent-ink:#232A47;
+      --mark:#E8877A; --mark-ink:#3B2422; --done:#5FC777; --done-ink:#1E3524;
+      --shadow:0 1px 2px rgba(0,0,0,.5),0 8px 20px rgba(0,0,0,.4);
+      color-scheme:dark;
+    }
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{background:var(--paper);color:var(--ink);font:15px/1.55 Manrope,-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;padding-inline:16px}
+  .shell{max-width:720px;margin:0 auto;padding-block:14px 48px;display:flex;flex-direction:column;gap:18px}
+  h1,h2,h3{font-family:Fraunces,"Songti SC",serif;text-wrap:balance;margin:0}
+  button,input,textarea{font:inherit;color:inherit}
+  button{cursor:pointer}
+  [hidden]{display:none!important}
+
+  header.topbar{position:sticky;top:0;background:var(--paper);z-index:5;padding-block:12px 10px;border-bottom:1px solid var(--line);display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-inline:-16px;padding-inline:16px}
+  .brand{display:flex;align-items:center;gap:8px}
+  .brand h1{font-size:19px;font-weight:600;letter-spacing:.2px}
+  .sub{font-size:12.5px;color:var(--ink-dim);margin-top:2px}
+  .viewer-chip{display:flex;align-items:center;gap:8px;flex:none;flex-wrap:wrap;justify-content:flex-end}
+  .avatar{width:24px;height:24px;border-radius:50%;background:var(--line);flex:none;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:11px;text-transform:uppercase}
+  .viewer-name{font-size:12px;color:var(--ink-dim);white-space:nowrap;max-width:110px;overflow:hidden;text-overflow:ellipsis}
+  .acct-label{font-size:10.5px;color:var(--ink-dim);text-transform:uppercase;letter-spacing:.4px;margin-right:2px}
+
+  .screen{display:flex;flex-direction:column;gap:16px}
+
+  .auth-wrap{max-width:360px;margin:28px auto 0;width:100%;display:flex;flex-direction:column;gap:14px}
+  .auth-tabs{display:flex;border:1px solid var(--line);border-radius:999px;overflow:hidden;width:fit-content;margin:0 auto;background:var(--paper-raised)}
+  .auth-tabs button{border:none;background:transparent;color:var(--ink-dim);padding:8px 22px;font-weight:700;font-size:13px}
+  .auth-tabs button.active{background:var(--accent);color:#fff}
+  .auth-form{display:flex;flex-direction:column;gap:8px}
+  .auth-note{font-size:11.5px;color:var(--ink-dim);line-height:1.6;text-align:center;padding:0 6px}
+
+  .topic-list{display:flex;flex-direction:column;gap:10px}
+  .topic-card{background:var(--paper-raised);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px;box-shadow:var(--shadow);display:flex;align-items:center;justify-content:space-between;gap:12px;text-align:left;width:100%}
+  .topic-card:hover{border-color:var(--accent)}
+  .topic-card .tc-main{min-width:0}
+  .topic-card h3{font-size:15.5px;font-weight:600;margin-bottom:2px}
+  .topic-card .tc-desc{font-size:12.5px;color:var(--ink-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .topic-card .tc-arrow{color:var(--accent);font-weight:700;flex:none}
+  .new-topic-form{display:flex;flex-direction:column;gap:8px}
+  .new-topic-form .row2{display:flex;gap:8px}
+  .new-topic-form .row2 input:first-child{flex:1.2}
+  .new-topic-form .row2 input:last-child{flex:1.6}
+
+  .topic-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+  .topic-head-left{display:flex;align-items:center;gap:10px;min-width:0}
+  .back-btn{flex:none;width:32px;height:32px;border-radius:50%;border:1px solid var(--line);background:var(--paper-raised);display:flex;align-items:center;justify-content:center}
+  .topic-title h2{font-size:18px;font-weight:600}
+  .nickname-chip{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--ink-dim);background:var(--paper-raised);border:1px solid var(--line);border-radius:999px;padding:4px 10px 4px 4px;flex:none}
+  .nickname-chip button{background:none;border:none;color:var(--accent);font-weight:700;font-size:12px;padding:0}
+  .nickname-edit{display:flex;gap:6px;align-items:center}
+  .nickname-edit input{width:130px}
+  .nick-prompt{background:var(--accent-ink);border:1px solid var(--accent);border-radius:var(--radius-sm);padding:12px 14px;display:flex;flex-direction:column;gap:8px;font-size:13px}
+
+  .card{background:var(--paper-raised);border:1px solid var(--line);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow)}
+  .card-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+  .card-head h2{font-size:16px;font-weight:600}
+
+  .empty{color:var(--ink-dim);font-size:13.5px;text-align:center;padding:28px 12px;border:1px dashed var(--line);border-radius:var(--radius-sm)}
+
+  textarea,input[type=text],input[type=password],input[type=email]{width:100%;border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:var(--radius-sm);padding:9px 11px;resize:vertical}
+  textarea:focus,input[type=text]:focus,input[type=password]:focus,input[type=email]:focus{outline:2px solid var(--accent);outline-offset:1px}
+
+  .btn{border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:999px;padding:8px 16px;font-weight:700;font-size:13px}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  .btn:disabled{opacity:.5;cursor:default}
+  .btn.ghost{border-color:transparent;background:transparent;color:var(--accent);padding:6px 8px}
+  .btn.sm{padding:6px 12px;font-size:12.5px}
+  .row{display:flex;gap:8px;align-items:center}
+  .row.end{justify-content:flex-end}
+
+  .composer{display:flex;flex-direction:column;gap:8px}
+  .msg-list{display:flex;flex-direction:column}
+  .msg{display:flex;gap:10px;padding-block:12px;border-top:1px solid var(--line)}
+  .msg:first-child{border-top:none}
+  .msg-body{flex:1;min-width:0}
+  .msg-head{display:flex;align-items:baseline;gap:8px;margin-bottom:2px}
+  .msg-name{font-weight:700;font-size:13px}
+  .msg-time{font-size:11.5px;color:var(--ink-dim)}
+  .msg-text{font-size:14px;white-space:pre-wrap;word-break:break-word}
+  .msg-del{margin-left:auto;flex:none;background:none;border:none;color:var(--mark);font-size:12px;font-weight:700}
+
+  .toast{position:fixed;left:50%;bottom:20px;transform:translate(-50%,20px);background:var(--ink);color:var(--paper);padding:10px 16px;border-radius:999px;font-size:13px;font-weight:600;opacity:0;transition:opacity .25s ease,transform .25s ease;pointer-events:none;z-index:50;max-width:calc(100% - 32px);text-align:center}
+  .toast.show{opacity:1;transform:translate(-50%,0)}
+
+  .roadmap{font-size:12px;color:var(--ink-dim);text-align:center;padding:6px 0}
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <header class="topbar">
+    <div>
+      <div class="brand"><h1>编辑部协作台</h1></div>
+      <div class="sub">每个主题都是独立的存档 — 各自的留言与成员</div>
+    </div>
+    <div class="viewer-chip">
+      <span class="acct-label">账户</span>
+      <span id="me-avatar" class="avatar"></span>
+      <span id="me-name" class="viewer-name">未登录</span>
+      <button class="btn ghost sm" id="logout-btn" hidden>退出</button>
+    </div>
+  </header>
+
+  <section class="screen" id="screen-auth">
+    <div class="auth-wrap">
+      <div class="auth-tabs">
+        <button type="button" id="auth-tab-register" class="active">注册</button>
+        <button type="button" id="auth-tab-login">登录</button>
+      </div>
+
+      <div class="card" id="auth-register-form">
+        <div class="card-head"><h2 style="font-size:15px">创建账户</h2></div>
+        <div class="auth-form">
+          <input type="text" id="reg-username" placeholder="用户名（3-20位字母、数字、下划线）" autocomplete="username">
+          <input type="email" id="reg-email" placeholder="邮箱" autocomplete="email">
+          <input type="password" id="reg-password" placeholder="设置密码（至少6位）" autocomplete="new-password">
+          <div class="row end"><button class="btn primary" id="reg-btn">注册</button></div>
+        </div>
+      </div>
+
+      <div class="card" id="auth-login-form" hidden>
+        <div class="card-head"><h2 style="font-size:15px">登录</h2></div>
+        <div class="auth-form">
+          <input type="text" id="login-username" placeholder="用户名" autocomplete="username">
+          <input type="password" id="login-password" placeholder="密码" autocomplete="current-password">
+          <div class="row end"><button class="btn primary" id="login-btn">登录</button></div>
+        </div>
+      </div>
+
+      <div class="auth-note">密码在服务器端加盐哈希后存储，任何人（包括管理员）都读不到你的原始密码。</div>
+    </div>
+  </section>
+
+  <section class="screen" id="screen-home" hidden>
+    <div class="card">
+      <div class="card-head"><h2>新建主题</h2></div>
+      <div class="new-topic-form">
+        <div class="row2">
+          <input type="text" id="new-topic-name" placeholder="主题名称，例如「高考写作书更新组」">
+          <input type="text" id="new-topic-desc" placeholder="一句话说明（可选）">
+        </div>
+        <div class="row end"><button class="btn primary" id="new-topic-btn">创建主题</button></div>
+      </div>
+    </div>
+    <div>
+      <div class="card-head" style="margin-bottom:10px"><h2 style="font-size:15px">所有主题</h2></div>
+      <div id="topic-list" class="topic-list"><div class="empty">还没有主题，创建第一个。</div></div>
+    </div>
+    <div class="roadmap">任务接力 / 投票 / 活跃度排行下一步再加</div>
+  </section>
+
+  <section class="screen" id="screen-topic" hidden>
+    <div class="topic-head">
+      <div class="topic-head-left">
+        <button class="back-btn" id="back-btn" aria-label="返回主题列表">←</button>
+        <div class="topic-title"><h2 id="topic-title-text">主题</h2></div>
+      </div>
+      <div id="nickname-area"></div>
+    </div>
+
+    <div class="card">
+      <div class="composer">
+        <textarea id="msg-input" rows="2" placeholder="在这个主题里写点什么…"></textarea>
+        <div class="row end"><button class="btn primary" id="msg-send">发布</button></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h2>最新留言</h2></div>
+      <div id="msg-list" class="msg-list"><div class="empty">还没有留言，写下第一条。</div></div>
+    </div>
+  </section>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  var toastEl = document.getElementById("toast");
+  var toastTimer = null;
+  function toast(msg){
+    toastEl.textContent = msg;
+    toastEl.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){ toastEl.classList.remove("show"); }, 2600);
+  }
+
+  function fmtTime(iso){
+    try{
+      var d = new Date(iso);
+      if (isNaN(d.getTime())) return "";
+      var now = new Date();
+      var sameDay = d.toDateString() === now.toDateString();
+      var opts = sameDay ? {hour:"2-digit",minute:"2-digit"} : {month:"numeric",day:"numeric",hour:"2-digit",minute:"2-digit"};
+      return d.toLocaleString("zh-CN", opts);
+    }catch(e){ return ""; }
+  }
+
+  function el(html){
+    var t = document.createElement("template");
+    t.innerHTML = html.trim();
+    return t.content.firstElementChild;
+  }
+
+  function avatarColor(name){
+    var s = (name || "?").trim();
+    var hash = 0;
+    for (var i = 0; i < s.length; i++){ hash = (hash * 31 + s.charCodeAt(i)) % 360; }
+    return "hsl(" + hash + ",55%,42%)";
+  }
+  function avatarChip(name){
+    var span = document.createElement("span");
+    span.className = "avatar";
+    span.style.background = avatarColor(name);
+    span.textContent = (name || "?").trim().charAt(0).toUpperCase() || "?";
+    return span;
+  }
+
+  function api(path, opts){
+    opts = opts || {};
+    var init = { method: opts.method || "GET", credentials: "same-origin", headers: {} };
+    if (opts.body){
+      init.headers["Content-Type"] = "application/json";
+      init.body = JSON.stringify(opts.body);
+    }
+    return fetch(path, init).then(function(res){
+      return res.json().catch(function(){ return {}; }).then(function(data){
+        if (!res.ok) throw { status: res.status, error: (data && data.error) || "request_failed" };
+        return data;
+      });
+    });
+  }
+
+  var state = {
+    account: null,
+    topics: [],
+    currentTopicId: null,
+    currentTopicCreatedBy: null,
+    membersMap: {},
+    messages: [],
+    msgPoller: null, topicPoller: null
+  };
+
+  function nameFor(id, fallbackName){
+    var m = state.membersMap[id];
+    if (m && m.nickname) return m.nickname;
+    return fallbackName || "同事";
+  }
+
+  // ---------- screens ----------
+  var screenAuth = document.getElementById("screen-auth");
+  var screenHome = document.getElementById("screen-home");
+  var screenTopic = document.getElementById("screen-topic");
+  function showScreen(name){
+    screenAuth.hidden = name !== "auth";
+    screenHome.hidden = name !== "home";
+    screenTopic.hidden = name !== "topic";
+  }
+
+  function applyMeUI(){
+    var avatarEl = document.getElementById("me-avatar");
+    avatarEl.style.background = avatarColor(state.account && state.account.username);
+    avatarEl.textContent = state.account ? (state.account.username || "?").trim().charAt(0).toUpperCase() : "";
+    document.getElementById("me-name").textContent = state.account ? state.account.username : "未登录";
+    document.getElementById("logout-btn").hidden = !state.account;
+  }
+
+  // ---------- AUTH ----------
+  var authTabRegister = document.getElementById("auth-tab-register");
+  var authTabLogin = document.getElementById("auth-tab-login");
+  var authRegisterForm = document.getElementById("auth-register-form");
+  var authLoginForm = document.getElementById("auth-login-form");
+  function showAuthTab(which){
+    authRegisterForm.hidden = which !== "register";
+    authLoginForm.hidden = which !== "login";
+    authTabRegister.classList.toggle("active", which === "register");
+    authTabLogin.classList.toggle("active", which === "login");
+  }
+  authTabRegister.addEventListener("click", function(){ showAuthTab("register"); });
+  authTabLogin.addEventListener("click", function(){ showAuthTab("login"); });
+
+  var errorText = {
+    invalid_username: "用户名需 3-20 位，只能是字母、数字、下划线或短横线",
+    invalid_email: "请填写有效邮箱",
+    weak_password: "密码至少 6 位",
+    username_taken: "用户名已被占用，换一个试试",
+    missing_fields: "请输入用户名和密码",
+    not_found: "用户名不存在",
+    wrong_password: "密码错误"
+  };
+  function friendlyError(e){
+    return (e && errorText[e.error]) || "操作失败，请稍后再试";
+  }
+
+  document.getElementById("reg-btn").addEventListener("click", function(){
+    var btn = this; btn.disabled = true;
+    api("/api/register", { method: "POST", body: {
+      username: document.getElementById("reg-username").value.trim(),
+      email: document.getElementById("reg-email").value.trim(),
+      password: document.getElementById("reg-password").value
+    }}).then(function(data){
+      state.account = data;
+      applyMeUI();
+      afterAuth();
+      toast("注册成功，欢迎，" + data.username);
+    }).catch(function(e){ toast(friendlyError(e)); }).finally(function(){ btn.disabled = false; });
+  });
+
+  document.getElementById("login-btn").addEventListener("click", function(){
+    var btn = this; btn.disabled = true;
+    api("/api/login", { method: "POST", body: {
+      username: document.getElementById("login-username").value.trim(),
+      password: document.getElementById("login-password").value
+    }}).then(function(data){
+      state.account = data;
+      applyMeUI();
+      afterAuth();
+    }).catch(function(e){ toast(friendlyError(e)); }).finally(function(){ btn.disabled = false; });
+  });
+
+  document.getElementById("logout-btn").addEventListener("click", function(){
+    api("/api/logout", { method: "POST" }).finally(function(){ location.reload(); });
+  });
+
+  // ---------- HOME ----------
+  var topicListEl = document.getElementById("topic-list");
+  function renderTopicList(){
+    if (!state.topics.length){
+      topicListEl.innerHTML = '<div class="empty">还没有主题，创建第一个。</div>';
+      return;
+    }
+    topicListEl.innerHTML = "";
+    state.topics.forEach(function(t){
+      var card = el('<button type="button" class="topic-card"><div class="tc-main"><h3></h3><div class="tc-desc"></div></div><span class="tc-arrow">进入 →</span></button>');
+      card.querySelector("h3").textContent = t.name || "未命名主题";
+      card.querySelector(".tc-desc").textContent = t.description || ("创建于 " + fmtTime(t.created_at));
+      card.addEventListener("click", function(){ enterTopic(t); });
+      topicListEl.appendChild(card);
+    });
+  }
+
+  function loadTopics(){
+    return api("/api/topics").then(function(data){
+      state.topics = data.topics || [];
+      if (!screenHome.hidden) renderTopicList();
+    }).catch(function(){});
+  }
+
+  document.getElementById("new-topic-btn").addEventListener("click", function(){
+    var nameInput = document.getElementById("new-topic-name");
+    var descInput = document.getElementById("new-topic-desc");
+    var name = nameInput.value.trim();
+    if (!name) return;
+    this.disabled = true; var self = this;
+    api("/api/topics", { method: "POST", body: { name: name, description: descInput.value.trim() } })
+      .then(function(t){ nameInput.value = ""; descInput.value = ""; return loadTopics().then(function(){ enterTopic(t); }); })
+      .catch(function(e){ toast(friendlyError(e)); })
+      .finally(function(){ self.disabled = false; });
+  });
+
+  document.getElementById("back-btn").addEventListener("click", exitTopic);
+
+  // ---------- TOPIC ----------
+  function stopTopicPolling(){
+    if (state.msgPoller){ clearInterval(state.msgPoller); state.msgPoller = null; }
+  }
+
+  function exitTopic(){
+    stopTopicPolling();
+    state.currentTopicId = null;
+    showScreen("home");
+    loadTopics();
+  }
+
+  function enterTopic(topic){
+    stopTopicPolling();
+    state.currentTopicId = topic.id;
+    state.currentTopicCreatedBy = topic.created_by;
+    document.getElementById("topic-title-text").textContent = topic.name || "主题";
+    showScreen("topic");
+    refreshMembers();
+    refreshMessages();
+    state.msgPoller = setInterval(function(){ refreshMessages(); refreshMembers(); }, 4000);
+  }
+
+  function refreshMembers(){
+    if (!state.currentTopicId) return;
+    api("/api/topics/" + state.currentTopicId + "/members").then(function(data){
+      var map = {};
+      (data.members || []).forEach(function(m){ map[m.account_id] = m; });
+      state.membersMap = map;
+      renderNicknameArea();
+      renderMessages();
+    }).catch(function(){});
+  }
+
+  function refreshMessages(){
+    if (!state.currentTopicId) return;
+    api("/api/topics/" + state.currentTopicId + "/messages").then(function(data){
+      state.messages = data.messages || [];
+      renderMessages();
+    }).catch(function(){});
+  }
+
+  // ---------- nickname ----------
+  var nickArea = document.getElementById("nickname-area");
+  function renderNicknameArea(){
+    nickArea.innerHTML = "";
+    if (!state.account) return;
+    var mine = state.membersMap[state.account.id];
+    if (!mine || !mine.nickname){
+      var prompt = el('<div class="nick-prompt"><div>在这个主题里，你想用什么名字？</div><div class="nickname-edit"><input type="text" id="nick-input" placeholder="你的昵称"><button class="btn primary sm" id="nick-save">确定</button></div></div>');
+      nickArea.appendChild(prompt);
+      var input = document.getElementById("nick-input");
+      if (input && !input.value) input.value = state.account.username || "";
+      document.getElementById("nick-save").addEventListener("click", saveNickname);
+      input.addEventListener("keydown", function(ev){ if (ev.key === "Enter") saveNickname(); });
+    } else {
+      var chip = el('<div class="nickname-chip"><span></span><button>改名</button></div>');
+      chip.querySelector("span").textContent = "我在这里是「" + mine.nickname + "」";
+      chip.querySelector("button").addEventListener("click", function(){ showNicknameEditor(mine.nickname); });
+      nickArea.appendChild(chip);
+    }
+  }
+  function showNicknameEditor(current){
+    nickArea.innerHTML = "";
+    var row = el('<div class="nickname-edit"><input type="text" id="nick-input" value=""><button class="btn primary sm" id="nick-save">保存</button></div>');
+    nickArea.appendChild(row);
+    document.getElementById("nick-input").value = current || "";
+    document.getElementById("nick-save").addEventListener("click", saveNickname);
+    document.getElementById("nick-input").addEventListener("keydown", function(ev){ if (ev.key === "Enter") saveNickname(); });
+  }
+  function saveNickname(){
+    var input = document.getElementById("nick-input");
+    var v = input.value.trim();
+    if (!v || !state.currentTopicId) return;
+    api("/api/topics/" + state.currentTopicId + "/members", { method: "POST", body: { nickname: v } })
+      .then(function(){ refreshMembers(); })
+      .catch(function(e){ toast(friendlyError(e)); });
+  }
+
+  // ---------- messages ----------
+  var msgListEl = document.getElementById("msg-list");
+  function renderMessages(){
+    if (!state.messages.length){
+      msgListEl.innerHTML = '<div class="empty">还没有留言，写下第一条。</div>';
+      return;
+    }
+    msgListEl.innerHTML = "";
+    state.messages.forEach(function(m){
+      var displayName = nameFor(m.author_id, m.author_name);
+      var row = el('<div class="msg"></div>');
+      row.appendChild(avatarChip(displayName));
+      var body = el('<div class="msg-body"><div class="msg-head"><span class="msg-name"></span><span class="msg-time"></span></div><div class="msg-text"></div></div>');
+      body.querySelector(".msg-name").textContent = displayName;
+      body.querySelector(".msg-time").textContent = fmtTime(m.created_at);
+      body.querySelector(".msg-text").textContent = m.text || "";
+      row.appendChild(body);
+      if (state.account && state.currentTopicCreatedBy === state.account.id){
+        var delBtn = el('<button class="msg-del" type="button">删除</button>');
+        delBtn.addEventListener("click", function(){
+          api("/api/topics/" + state.currentTopicId + "/messages/" + m.id, { method: "DELETE" })
+            .then(refreshMessages).catch(function(e){ toast(friendlyError(e)); });
+        });
+        row.querySelector(".msg-head").appendChild(delBtn);
+      }
+      msgListEl.appendChild(row);
+    });
+  }
+
+  document.getElementById("msg-send").addEventListener("click", function(){
+    var input = document.getElementById("msg-input");
+    var text = input.value.trim();
+    if (!text || !state.currentTopicId) return;
+    var btn = this; btn.disabled = true;
+    api("/api/topics/" + state.currentTopicId + "/messages", { method: "POST", body: { text: text } })
+      .then(function(){ input.value = ""; refreshMessages(); })
+      .catch(function(e){ toast(friendlyError(e)); })
+      .finally(function(){ btn.disabled = false; });
+  });
+
+  // ---------- boot ----------
+  function afterAuth(){
+    showScreen("home");
+    loadTopics();
+  }
+
+  function boot(){
+    showAuthTab("register");
+    api("/api/me").then(function(data){
+      if (data.account){
+        state.account = data.account;
+        applyMeUI();
+        afterAuth();
+      } else {
+        showScreen("auth");
+      }
+    }).catch(function(){ showScreen("auth"); });
+  }
+
+  boot();
+})();
+</script>
+</body>
+</html>
