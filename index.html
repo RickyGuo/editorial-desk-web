@@ -67,7 +67,10 @@
   .topic-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
   .topic-head-left{display:flex;align-items:center;gap:10px;min-width:0}
   .back-btn{flex:none;width:32px;height:32px;border-radius:50%;border:1px solid var(--line);background:var(--paper-raised);display:flex;align-items:center;justify-content:center}
-  .topic-title h2{font-size:18px;font-weight:600}
+  .topic-title{display:flex;align-items:center;gap:4px;min-width:0}
+  .topic-title h2{font-size:18px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .topic-title-edit{display:flex;align-items:center;gap:6px}
+  .topic-title-edit input{width:180px}
   .nickname-chip{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--ink-dim);background:var(--paper-raised);border:1px solid var(--line);border-radius:999px;padding:4px 10px 4px 4px;flex:none}
   .nickname-chip button{background:none;border:none;color:var(--accent);font-weight:700;font-size:12px;padding:0}
   .nickname-edit{display:flex;gap:6px;align-items:center}
@@ -215,7 +218,15 @@
     <div class="topic-head">
       <div class="topic-head-left">
         <button class="back-btn" id="back-btn" aria-label="返回主题列表">←</button>
-        <div class="topic-title"><h2 id="topic-title-text">主题</h2></div>
+        <div class="topic-title" id="topic-title-view">
+          <h2 id="topic-title-text">主题</h2>
+          <button type="button" class="btn ghost sm" id="topic-rename-btn" hidden>改名</button>
+        </div>
+        <div class="topic-title-edit" id="topic-title-edit" hidden>
+          <input type="text" id="topic-rename-input" placeholder="主题名称">
+          <button type="button" class="btn primary sm" id="topic-rename-save">保存</button>
+          <button type="button" class="btn sm" id="topic-rename-cancel">取消</button>
+        </div>
       </div>
       <div id="nickname-area"></div>
     </div>
@@ -342,7 +353,7 @@
     });
   }
 
-  var VERSION = "v0.2.0";
+  var VERSION = "v0.3.0";
   var VERSION_DATE = "2026-09-26";
   document.getElementById("version-footer").textContent = "编辑部协作台 " + VERSION + " · " + VERSION_DATE;
 
@@ -405,7 +416,10 @@
     username_taken: "用户名已被占用，换一个试试",
     missing_fields: "请输入用户名和密码",
     not_found: "用户名不存在",
-    wrong_password: "密码错误"
+    wrong_password: "密码错误",
+    forbidden: "没有权限执行此操作",
+    locked: "前面还有任务没完成，暂时不能认领",
+    poll_closed: "投票已结束"
   };
   function friendlyError(e){
     return (e && errorText[e.error]) || "操作失败，请稍后再试";
@@ -520,11 +534,47 @@
     state.currentTopicId = topic.id;
     state.currentTopicCreatedBy = topic.created_by;
     document.getElementById("topic-title-text").textContent = topic.name || "主题";
+    showTopicTitleView();
+    document.getElementById("topic-rename-btn").hidden = !(state.account && state.currentTopicCreatedBy === state.account.id);
     showScreen("topic");
     showTab("board");
     refreshMembers();
     state.msgPoller = setInterval(function(){ refreshMembers(); refreshActiveTab(); }, 4000);
   }
+
+  // ---------- topic rename ----------
+  var topicTitleView = document.getElementById("topic-title-view");
+  var topicTitleEdit = document.getElementById("topic-title-edit");
+  var topicTitleText = document.getElementById("topic-title-text");
+  var topicRenameInput = document.getElementById("topic-rename-input");
+  function showTopicTitleView(){
+    topicTitleView.hidden = false;
+    topicTitleEdit.hidden = true;
+  }
+  function showTopicTitleEdit(){
+    topicRenameInput.value = topicTitleText.textContent || "";
+    topicTitleView.hidden = true;
+    topicTitleEdit.hidden = false;
+    topicRenameInput.focus();
+  }
+  document.getElementById("topic-rename-btn").addEventListener("click", showTopicTitleEdit);
+  document.getElementById("topic-rename-cancel").addEventListener("click", showTopicTitleView);
+  function saveTopicRename(){
+    var name = topicRenameInput.value.trim();
+    if (!name || !state.currentTopicId) return;
+    api("/api/topics/" + state.currentTopicId, { method: "PATCH", body: { name: name } })
+      .then(function(t){
+        topicTitleText.textContent = t.name || name;
+        showTopicTitleView();
+        loadTopics();
+      })
+      .catch(function(e){ toast(friendlyError(e)); });
+  }
+  document.getElementById("topic-rename-save").addEventListener("click", saveTopicRename);
+  topicRenameInput.addEventListener("keydown", function(ev){
+    if (ev.key === "Enter") saveTopicRename();
+    if (ev.key === "Escape") showTopicTitleView();
+  });
 
   function refreshMembers(){
     if (!state.currentTopicId) return;
