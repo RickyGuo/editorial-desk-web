@@ -1,4 +1,4 @@
-import { getSessionAccount, json } from "../../../../../../_lib/auth.js";
+import { getSessionAccount, getTopicAccess, json } from "../../../../../../_lib/auth.js";
 
 // PATCH: { action: "claim" | "unclaim" | "done" }
 // Relay rule: an item can only be claimed once every item before it (lower
@@ -6,6 +6,9 @@ import { getSessionAccount, json } from "../../../../../../_lib/auth.js";
 export async function onRequestPatch({ request, params, env }) {
   var account = await getSessionAccount(request, env);
   if (!account) return json({ error: "unauthorized" }, { status: 401 });
+  var access = await getTopicAccess(env, params.id, account.id);
+  if (!access.topic) return json({ error: "not_found" }, { status: 404 });
+  if (!access.allowed) return json({ error: "access_denied", status: access.status }, { status: 403 });
 
   var body;
   try { body = await request.json(); } catch (e) { return json({ error: "bad_request" }, { status: 400 }); }

@@ -1,5 +1,12 @@
 -- Run this once in the Cloudflare dashboard: D1 -> your database -> Console,
 -- paste this whole file and execute. No CLI needed.
+--
+-- NOTE for an already-running database (created before the topic-access-control
+-- feature): CREATE TABLE IF NOT EXISTS below will NOT add the new access_mode /
+-- join_password_* columns to an existing "topics" table -- SQLite only adds
+-- columns via ALTER TABLE. See README.md's "一次性升级" section for the
+-- one-time ALTER TABLE statements to run separately, once, on an existing DB.
+-- A brand-new database gets everything from this file in one pass.
 
 CREATE TABLE IF NOT EXISTS accounts (
   id TEXT PRIMARY KEY,          -- normalized (lowercase) username, used as the account id everywhere
@@ -22,7 +29,10 @@ CREATE TABLE IF NOT EXISTS topics (
   name TEXT NOT NULL,
   description TEXT,
   created_by TEXT NOT NULL,
-  created_at TEXT NOT NULL
+  created_at TEXT NOT NULL,
+  access_mode TEXT NOT NULL DEFAULT 'public',  -- public | password | approval
+  join_password_salt TEXT,
+  join_password_hash TEXT
 );
 
 CREATE TABLE IF NOT EXISTS members (
@@ -85,9 +95,22 @@ CREATE TABLE IF NOT EXISTS votes (
   UNIQUE (poll_id, voter_id)
 );
 
+CREATE TABLE IF NOT EXISTS join_requests (
+  id TEXT PRIMARY KEY,
+  topic_id TEXT NOT NULL,
+  account_id TEXT NOT NULL,
+  account_name TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'pending',   -- pending | approved | rejected
+  created_at TEXT NOT NULL,
+  decided_at TEXT,
+  UNIQUE (topic_id, account_id)
+);
+
 CREATE INDEX IF NOT EXISTS idx_messages_topic ON messages(topic_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_sessions_expiry ON sessions(expires_at);
 CREATE INDEX IF NOT EXISTS idx_checklists_topic ON checklists(topic_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_items_checklist ON checklist_items(checklist_id, order_num);
 CREATE INDEX IF NOT EXISTS idx_polls_topic ON polls(topic_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_votes_poll ON votes(poll_id);
+CREATE INDEX IF NOT EXISTS idx_join_requests_topic ON join_requests(topic_id, status);
+CREATE INDEX IF NOT EXISTS idx_join_requests_account ON join_requests(account_id);

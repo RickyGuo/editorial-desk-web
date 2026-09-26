@@ -1,8 +1,12 @@
-import { getSessionAccount, json } from "../../../../_lib/auth.js";
+import { getSessionAccount, getTopicAccess, json } from "../../../../_lib/auth.js";
 
-// GET: list polls for a topic, each with per-option tallies and (if signed in) the caller's own vote.
+// GET: list polls for a topic, each with per-option tallies and the caller's own vote.
 export async function onRequestGet({ request, params, env }) {
   var account = await getSessionAccount(request, env);
+  if (!account) return json({ error: "unauthorized" }, { status: 401 });
+  var access = await getTopicAccess(env, params.id, account.id);
+  if (!access.topic) return json({ error: "not_found" }, { status: 404 });
+  if (!access.allowed) return json({ error: "access_denied", status: access.status }, { status: 403 });
 
   var polls = (await env.DB.prepare(
     "SELECT id, question, options, created_by, created_at, closed FROM polls WHERE topic_id = ? ORDER BY created_at ASC"
@@ -26,11 +30,8 @@ export async function onRequestGet({ request, params, env }) {
     p.tally = tally;
     p.total_votes = pollVotes.length;
     p.closed = !!p.closed;
-    p.my_vote = null;
-    if (account) {
-      var mine = pollVotes.find(function (v) { return v.voter_id === account.id; });
-      p.my_vote = mine ? mine.option_id : null;
-    }
+    var mine = pollVotes.find(function (v) { return v.voter_id === account.id; });
+    p.my_vote = mine ? mine.option_id : null;
   });
 
   return json({ polls: polls });
@@ -40,6 +41,9 @@ export async function onRequestGet({ request, params, env }) {
 export async function onRequestPost({ request, params, env }) {
   var account = await getSessionAccount(request, env);
   if (!account) return json({ error: "unauthorized" }, { status: 401 });
+  var access = await getTopicAccess(env, params.id, account.id);
+  if (!access.topic) return json({ error: "not_found" }, { status: 404 });
+  if (!access.allowed) return json({ error: "access_denied", status: access.status }, { status: 403 });
 
   var body;
   try { body = await request.json(); } catch (e) { return json({ error: "bad_request" }, { status: 400 }); }

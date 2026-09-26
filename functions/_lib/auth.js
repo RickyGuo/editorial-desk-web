@@ -65,6 +65,29 @@ export async function getSessionAccount(request, env) {
   return row || null;
 }
 
+// Resolves whether `accountId` may see a topic's content.
+// - public topics: always allowed
+// - the topic's creator: always allowed
+// - password/approval topics: allowed only once an 'approved' join_requests row exists
+// Returns { topic, allowed, status } where status is 'approved' | 'pending' | 'rejected' | 'none'.
+// topic is null (and allowed false) when the topic doesn't exist.
+export async function getTopicAccess(env, topicId, accountId) {
+  var topic = await env.DB.prepare(
+    "SELECT id, name, description, created_by, created_at, access_mode FROM topics WHERE id = ?"
+  ).bind(topicId).first();
+  if (!topic) return { topic: null, allowed: false, status: "not_found" };
+
+  if (topic.access_mode === "public" || topic.created_by === accountId) {
+    return { topic: topic, allowed: true, status: "approved" };
+  }
+
+  var req = await env.DB.prepare(
+    "SELECT status FROM join_requests WHERE topic_id = ? AND account_id = ?"
+  ).bind(topicId, accountId).first();
+  var status = req ? req.status : "none";
+  return { topic: topic, allowed: status === "approved", status: status };
+}
+
 export function json(data, init) {
   var headers = Object.assign({ "Content-Type": "application/json" }, (init && init.headers) || {});
   return new Response(JSON.stringify(data), Object.assign({}, init || {}, { headers: headers }));

@@ -1,8 +1,14 @@
-import { json } from "../../../_lib/auth.js";
+import { getSessionAccount, getTopicAccess, json } from "../../../_lib/auth.js";
 
 // GET: activity leaderboard for a topic — message count, completed relay
 // items, and votes cast, per account, ranked by total descending.
-export async function onRequestGet({ params, env }) {
+export async function onRequestGet({ request, params, env }) {
+  var account = await getSessionAccount(request, env);
+  if (!account) return json({ error: "unauthorized" }, { status: 401 });
+  var access = await getTopicAccess(env, params.id, account.id);
+  if (!access.topic) return json({ error: "not_found" }, { status: 404 });
+  if (!access.allowed) return json({ error: "access_denied", status: access.status }, { status: 403 });
+
   var msgRows = (await env.DB.prepare(
     "SELECT author_id AS account_id, COUNT(*) AS n FROM messages WHERE topic_id = ? GROUP BY author_id"
   ).bind(params.id).all()).results || [];

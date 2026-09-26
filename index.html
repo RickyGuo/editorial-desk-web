@@ -59,6 +59,10 @@
   .topic-card h3{font-size:15.5px;font-weight:600;margin-bottom:2px}
   .topic-card .tc-desc{font-size:12.5px;color:var(--ink-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .topic-card .tc-arrow{color:var(--accent);font-weight:700;flex:none}
+  .tc-badge{display:inline-block;font-size:10.5px;font-weight:700;padding:2px 7px;border-radius:999px;margin-top:4px;letter-spacing:.2px}
+  .tc-badge.gate{background:var(--accent-ink);color:var(--accent)}
+  .tc-badge.pending{background:var(--accent-ink);color:var(--accent)}
+  .tc-badge.rejected{background:var(--mark-ink);color:var(--mark)}
   .new-topic-form{display:flex;flex-direction:column;gap:8px}
   .new-topic-form .row2{display:flex;gap:8px}
   .new-topic-form .row2 input:first-child{flex:1.2}
@@ -83,8 +87,8 @@
 
   .empty{color:var(--ink-dim);font-size:13.5px;text-align:center;padding:28px 12px;border:1px dashed var(--line);border-radius:var(--radius-sm)}
 
-  textarea,input[type=text],input[type=password],input[type=email]{width:100%;border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:var(--radius-sm);padding:9px 11px;resize:vertical}
-  textarea:focus,input[type=text]:focus,input[type=password]:focus,input[type=email]:focus{outline:2px solid var(--accent);outline-offset:1px}
+  textarea,input[type=text],input[type=password],input[type=email],select{width:100%;border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:var(--radius-sm);padding:9px 11px;resize:vertical}
+  textarea:focus,input[type=text]:focus,input[type=password]:focus,input[type=email]:focus,select:focus{outline:2px solid var(--accent);outline-offset:1px}
 
   .btn{border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:999px;padding:8px 16px;font-weight:700;font-size:13px}
   .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
@@ -149,6 +153,22 @@
   .activity-nums b{color:var(--ink);font-weight:700}
 
   footer.version-footer{max-width:720px;margin:0 auto;padding:4px 16px 18px;text-align:center;font-size:11px;color:var(--ink-dim)}
+
+  .gate-icon{font-size:28px;text-align:center;margin-bottom:6px}
+  .gate-text{font-size:13.5px;color:var(--ink-dim);text-align:center;line-height:1.7}
+  .gate-form{display:flex;flex-direction:column;gap:8px;max-width:280px;margin:10px auto 0}
+
+  .settings-panel{display:flex;flex-direction:column;gap:8px;background:var(--paper);border:1px solid var(--line);border-radius:var(--radius-sm);padding:12px;margin-top:8px}
+  .settings-row label{font-size:12px;color:var(--ink-dim);display:block;margin-bottom:4px}
+
+  .join-req-row{display:flex;align-items:center;gap:10px;padding-block:10px;border-top:1px solid var(--line)}
+  .join-req-row:first-child{border-top:none}
+  .join-req-name{flex:1;min-width:0;font-weight:600;font-size:13.5px}
+  .join-req-time{font-size:11px;color:var(--ink-dim)}
+  .join-req-actions{flex:none;display:flex;gap:6px}
+  .join-req-status{flex:none;font-size:11.5px;font-weight:700;padding:3px 9px;border-radius:999px}
+  .join-req-status.approved{background:var(--done-ink);color:var(--done)}
+  .join-req-status.rejected{background:var(--mark-ink);color:var(--mark)}
 </style>
 </head>
 <body>
@@ -205,6 +225,14 @@
           <input type="text" id="new-topic-name" placeholder="主题名称，例如「高考写作书更新组」">
           <input type="text" id="new-topic-desc" placeholder="一句话说明（可选）">
         </div>
+        <div class="row2">
+          <select id="new-topic-access">
+            <option value="public" selected>公开 — 任何账户都能直接进入</option>
+            <option value="password">需要密码才能加入</option>
+            <option value="approval">需要我审核通过才能加入</option>
+          </select>
+          <input type="text" id="new-topic-password" placeholder="设置加入密码（至少4位）" hidden>
+        </div>
         <div class="row end"><button class="btn primary" id="new-topic-btn">创建主题</button></div>
       </div>
     </div>
@@ -220,7 +248,7 @@
         <button class="back-btn" id="back-btn" aria-label="返回主题列表">←</button>
         <div class="topic-title" id="topic-title-view">
           <h2 id="topic-title-text">主题</h2>
-          <button type="button" class="btn ghost sm" id="topic-rename-btn" hidden>改名</button>
+          <button type="button" class="btn ghost sm" id="topic-rename-btn" hidden>设置</button>
         </div>
         <div class="topic-title-edit" id="topic-title-edit" hidden>
           <input type="text" id="topic-rename-input" placeholder="主题名称">
@@ -231,60 +259,91 @@
       <div id="nickname-area"></div>
     </div>
 
-    <div class="tabbar">
-      <button type="button" class="tab-btn active" data-tab="board">留言板</button>
-      <button type="button" class="tab-btn" data-tab="relay">任务接力</button>
-      <button type="button" class="tab-btn" data-tab="polls">投票</button>
-      <button type="button" class="tab-btn" data-tab="activity">活跃度</button>
+    <div class="settings-panel" id="topic-settings-panel" hidden>
+      <div class="settings-row">
+        <label>加入方式</label>
+        <select id="topic-access-select">
+          <option value="public">公开 — 任何账户都能直接进入</option>
+          <option value="password">需要密码才能加入</option>
+          <option value="approval">需要我审核通过才能加入</option>
+        </select>
+      </div>
+      <div class="settings-row" id="topic-password-row" hidden>
+        <label>设置新的加入密码（留空 = 不修改已有密码）</label>
+        <input type="text" id="topic-access-password" placeholder="至少4位">
+      </div>
     </div>
 
-    <div class="tab-panel" id="tab-board">
-      <div class="card">
-        <div class="composer">
-          <textarea id="msg-input" rows="2" placeholder="在这个主题里写点什么…"></textarea>
-          <div class="row end"><button class="btn primary" id="msg-send">发布</button></div>
+    <div id="topic-gate" class="card" hidden>
+      <div class="gate-icon" id="topic-gate-icon">🔒</div>
+      <div class="gate-text" id="topic-gate-text"></div>
+      <div class="gate-form" id="topic-gate-form"></div>
+    </div>
+
+    <div id="topic-content">
+      <div class="tabbar">
+        <button type="button" class="tab-btn active" data-tab="board">留言板</button>
+        <button type="button" class="tab-btn" data-tab="relay">任务接力</button>
+        <button type="button" class="tab-btn" data-tab="polls">投票</button>
+        <button type="button" class="tab-btn" data-tab="activity">活跃度</button>
+        <button type="button" class="tab-btn" data-tab="requests" id="tab-btn-requests" hidden>入群申请</button>
+      </div>
+
+      <div class="tab-panel" id="tab-board">
+        <div class="card">
+          <div class="composer">
+            <textarea id="msg-input" rows="2" placeholder="在这个主题里写点什么…"></textarea>
+            <div class="row end"><button class="btn primary" id="msg-send">发布</button></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h2>最新留言</h2></div>
+          <div id="msg-list" class="msg-list"><div class="empty">还没有留言，写下第一条。</div></div>
         </div>
       </div>
-      <div class="card">
-        <div class="card-head"><h2>最新留言</h2></div>
-        <div id="msg-list" class="msg-list"><div class="empty">还没有留言，写下第一条。</div></div>
-      </div>
-    </div>
 
-    <div class="tab-panel" id="tab-relay" hidden>
-      <div class="card">
-        <div class="card-head"><h2 style="font-size:15px">新建接力清单</h2></div>
-        <div class="auth-form">
-          <input type="text" id="relay-title" placeholder="清单标题，例如「第 3 期排版任务」">
-          <textarea id="relay-items" rows="3" placeholder="每行一个任务，按顺序接力，例如：&#10;初稿排版&#10;校对&#10;定稿发布"></textarea>
-          <div class="row end"><button class="btn primary" id="relay-create-btn">创建清单</button></div>
+      <div class="tab-panel" id="tab-relay" hidden>
+        <div class="card">
+          <div class="card-head"><h2 style="font-size:15px">新建接力清单</h2></div>
+          <div class="auth-form">
+            <input type="text" id="relay-title" placeholder="清单标题，例如「第 3 期排版任务」">
+            <textarea id="relay-items" rows="3" placeholder="每行一个任务，按顺序接力，例如：&#10;初稿排版&#10;校对&#10;定稿发布"></textarea>
+            <div class="row end"><button class="btn primary" id="relay-create-btn">创建清单</button></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h2 style="font-size:15px">进行中的清单</h2></div>
+          <div id="relay-list"><div class="empty">还没有接力清单。</div></div>
         </div>
       </div>
-      <div class="card">
-        <div class="card-head"><h2 style="font-size:15px">进行中的清单</h2></div>
-        <div id="relay-list"><div class="empty">还没有接力清单。</div></div>
-      </div>
-    </div>
 
-    <div class="tab-panel" id="tab-polls" hidden>
-      <div class="card">
-        <div class="card-head"><h2 style="font-size:15px">发起投票</h2></div>
-        <div class="auth-form">
-          <input type="text" id="poll-question" placeholder="投票问题">
-          <textarea id="poll-options" rows="3" placeholder="每行一个选项，至少两个，例如：&#10;方案 A&#10;方案 B"></textarea>
-          <div class="row end"><button class="btn primary" id="poll-create-btn">发起</button></div>
+      <div class="tab-panel" id="tab-polls" hidden>
+        <div class="card">
+          <div class="card-head"><h2 style="font-size:15px">发起投票</h2></div>
+          <div class="auth-form">
+            <input type="text" id="poll-question" placeholder="投票问题">
+            <textarea id="poll-options" rows="3" placeholder="每行一个选项，至少两个，例如：&#10;方案 A&#10;方案 B"></textarea>
+            <div class="row end"><button class="btn primary" id="poll-create-btn">发起</button></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h2 style="font-size:15px">所有投票</h2></div>
+          <div id="poll-list"><div class="empty">还没有投票。</div></div>
         </div>
       </div>
-      <div class="card">
-        <div class="card-head"><h2 style="font-size:15px">所有投票</h2></div>
-        <div id="poll-list"><div class="empty">还没有投票。</div></div>
-      </div>
-    </div>
 
-    <div class="tab-panel" id="tab-activity" hidden>
-      <div class="card">
-        <div class="card-head"><h2 style="font-size:15px">活跃度排行</h2></div>
-        <div id="activity-list"><div class="empty">还没有数据。</div></div>
+      <div class="tab-panel" id="tab-activity" hidden>
+        <div class="card">
+          <div class="card-head"><h2 style="font-size:15px">活跃度排行</h2></div>
+          <div id="activity-list"><div class="empty">还没有数据。</div></div>
+        </div>
+      </div>
+
+      <div class="tab-panel" id="tab-requests" hidden>
+        <div class="card">
+          <div class="card-head"><h2 style="font-size:15px">等待审核的加入申请</h2></div>
+          <div id="join-requests-list"><div class="empty">还没有申请。</div></div>
+        </div>
       </div>
     </div>
   </section>
@@ -353,7 +412,7 @@
     });
   }
 
-  var VERSION = "v0.3.1";
+  var VERSION = "v0.4.0";
   var VERSION_DATE = "2026-09-26";
   document.getElementById("version-footer").textContent = "编辑部协作台 " + VERSION + " · " + VERSION_DATE;
 
@@ -367,8 +426,11 @@
     checklists: [],
     polls: [],
     activity: [],
+    joinRequests: [],
     activeTab: "board",
     editingNickname: false,
+    currentTopicAccessMode: "public",
+    currentTopicMyStatus: "approved",
     msgPoller: null, topicPoller: null
   };
 
@@ -420,7 +482,12 @@
     wrong_password: "密码错误",
     forbidden: "没有权限执行此操作",
     locked: "前面还有任务没完成，暂时不能认领",
-    poll_closed: "投票已结束"
+    poll_closed: "投票已结束",
+    wrong_join_password: "密码不正确",
+    missing_password: "请输入密码",
+    weak_join_password: "密码至少 4 位",
+    missing_join_password: "切换成密码模式需要设置一个密码",
+    access_denied: "还没有权限查看这个主题的内容"
   };
   function friendlyError(e){
     return (e && errorText[e.error]) || "操作失败，请稍后再试";
@@ -468,9 +535,30 @@
       var card = el('<button type="button" class="topic-card"><div class="tc-main"><h3></h3><div class="tc-desc"></div></div><span class="tc-arrow">进入 →</span></button>');
       card.querySelector("h3").textContent = t.name || "未命名主题";
       card.querySelector(".tc-desc").textContent = t.description || ("创建于 " + fmtTime(t.created_at));
+      var badge = topicBadge(t);
+      if (badge) card.querySelector(".tc-main").appendChild(badge);
       card.addEventListener("click", function(){ enterTopic(t); });
       topicListEl.appendChild(card);
     });
+  }
+
+  function topicBadge(t){
+    if (t.access_mode === "public" || t.my_status === "approved") return null;
+    var span = document.createElement("span");
+    if (t.access_mode === "password"){
+      span.className = "tc-badge gate";
+      span.textContent = "🔒 需要密码";
+    } else if (t.my_status === "pending"){
+      span.className = "tc-badge pending";
+      span.textContent = "⏳ 审核中";
+    } else if (t.my_status === "rejected"){
+      span.className = "tc-badge rejected";
+      span.textContent = "申请被拒绝";
+    } else {
+      span.className = "tc-badge gate";
+      span.textContent = "📝 需要申请";
+    }
+    return span;
   }
 
   function loadTopics(){
@@ -480,14 +568,30 @@
     }).catch(function(){});
   }
 
+  document.getElementById("new-topic-access").addEventListener("change", function(){
+    document.getElementById("new-topic-password").hidden = this.value !== "password";
+  });
+
   document.getElementById("new-topic-btn").addEventListener("click", function(){
     var nameInput = document.getElementById("new-topic-name");
     var descInput = document.getElementById("new-topic-desc");
+    var accessSelect = document.getElementById("new-topic-access");
+    var passwordInput = document.getElementById("new-topic-password");
     var name = nameInput.value.trim();
     if (!name) return;
+    var body = { name: name, description: descInput.value.trim(), access_mode: accessSelect.value };
+    if (accessSelect.value === "password"){
+      var pw = passwordInput.value.trim();
+      if (pw.length < 4){ toast("密码至少 4 位"); return; }
+      body.password = pw;
+    }
     this.disabled = true; var self = this;
-    api("/api/topics", { method: "POST", body: { name: name, description: descInput.value.trim() } })
-      .then(function(t){ nameInput.value = ""; descInput.value = ""; return loadTopics().then(function(){ enterTopic(t); }); })
+    api("/api/topics", { method: "POST", body: body })
+      .then(function(t){
+        nameInput.value = ""; descInput.value = ""; passwordInput.value = "";
+        accessSelect.value = "public"; passwordInput.hidden = true;
+        return loadTopics().then(function(){ enterTopic(t); });
+      })
       .catch(function(e){ toast(friendlyError(e)); })
       .finally(function(){ self.disabled = false; });
   });
@@ -500,7 +604,8 @@
     board: document.getElementById("tab-board"),
     relay: document.getElementById("tab-relay"),
     polls: document.getElementById("tab-polls"),
-    activity: document.getElementById("tab-activity")
+    activity: document.getElementById("tab-activity"),
+    requests: document.getElementById("tab-requests")
   };
   function showTab(name){
     state.activeTab = name;
@@ -516,6 +621,7 @@
     else if (state.activeTab === "relay") refreshChecklists();
     else if (state.activeTab === "polls") refreshPolls();
     else if (state.activeTab === "activity") refreshActivity();
+    else if (state.activeTab === "requests") refreshJoinRequests();
   }
 
   // ---------- TOPIC ----------
@@ -530,52 +636,255 @@
     loadTopics();
   }
 
+  function isTopicCreator(){
+    return !!(state.account && state.currentTopicCreatedBy === state.account.id);
+  }
+
+  function updateRequestsTabVisibility(){
+    document.getElementById("tab-btn-requests").hidden = !(isTopicCreator() && state.currentTopicAccessMode === "approval");
+  }
+
   function enterTopic(topic){
     stopTopicPolling();
     state.editingNickname = false;
     state.currentTopicId = topic.id;
     state.currentTopicCreatedBy = topic.created_by;
+    state.currentTopicAccessMode = topic.access_mode || "public";
+    state.currentTopicMyStatus = topic.my_status || "approved";
     document.getElementById("topic-title-text").textContent = topic.name || "主题";
     showTopicTitleView();
-    document.getElementById("topic-rename-btn").hidden = !(state.account && state.currentTopicCreatedBy === state.account.id);
+    hideTopicSettingsPanel();
+    document.getElementById("topic-rename-btn").hidden = !isTopicCreator();
+    updateRequestsTabVisibility();
     showScreen("topic");
+    updateGateUI();
+  }
+
+  function enterTopicContent(){
+    document.getElementById("topic-gate").hidden = true;
+    document.getElementById("topic-content").hidden = false;
     showTab("board");
     refreshMembers();
     state.msgPoller = setInterval(function(){ refreshMembers(); refreshActiveTab(); }, 4000);
   }
 
-  // ---------- topic rename ----------
+  // ---------- access gate (password / creator-approval topics) ----------
+  function updateGateUI(){
+    var gate = document.getElementById("topic-gate");
+    var content = document.getElementById("topic-content");
+    if (state.currentTopicMyStatus === "approved"){
+      gate.hidden = true;
+      content.hidden = false;
+      enterTopicContent();
+      return;
+    }
+    gate.hidden = false;
+    content.hidden = true;
+    renderGate();
+    // Keep checking in the background so the gate clears itself the moment
+    // access is granted (password success is immediate; approval needs the
+    // creator to act, possibly while this tab is sitting open).
+    if (!state.msgPoller) state.msgPoller = setInterval(checkJoinStatus, 4000);
+  }
+
+  function checkJoinStatus(){
+    if (!state.currentTopicId || state.currentTopicMyStatus === "approved") return;
+    api("/api/topics/" + state.currentTopicId + "/join").then(function(data){
+      if (data.status && data.status !== state.currentTopicMyStatus){
+        state.currentTopicMyStatus = data.status;
+        if (data.status === "approved"){
+          stopTopicPolling();
+          toast("已获得访问权限");
+          enterTopicContent();
+        } else {
+          renderGate();
+        }
+      }
+    }).catch(function(){});
+  }
+
+  function renderGate(){
+    var iconEl = document.getElementById("topic-gate-icon");
+    var textEl = document.getElementById("topic-gate-text");
+    var formEl = document.getElementById("topic-gate-form");
+    formEl.innerHTML = "";
+    var mode = state.currentTopicAccessMode;
+    var status = state.currentTopicMyStatus;
+
+    if (mode === "password"){
+      iconEl.textContent = "🔒";
+      textEl.textContent = "这个主题需要密码才能进入。";
+      var row = el('<div class="row"><input type="text" id="gate-password-input" placeholder="输入密码"><button type="button" class="btn primary sm" id="gate-password-btn">进入</button></div>');
+      formEl.appendChild(row);
+      document.getElementById("gate-password-btn").addEventListener("click", submitGatePassword);
+      document.getElementById("gate-password-input").addEventListener("keydown", function(ev){ if (ev.key === "Enter") submitGatePassword(); });
+    } else if (mode === "approval"){
+      if (status === "pending"){
+        iconEl.textContent = "⏳";
+        textEl.textContent = "已提交申请，正在等待创建者审核，请耐心等待（这里会自动检测通过情况）。";
+      } else if (status === "rejected"){
+        iconEl.textContent = "🚫";
+        textEl.textContent = "上一次的申请被拒绝了。";
+        var retryBtn = el('<button type="button" class="btn primary sm">重新申请</button>');
+        retryBtn.addEventListener("click", submitGateApproval);
+        formEl.appendChild(retryBtn);
+      } else {
+        iconEl.textContent = "📝";
+        textEl.textContent = "这个主题需要创建者审核通过才能进入。";
+        var applyBtn = el('<button type="button" class="btn primary sm">申请加入</button>');
+        applyBtn.addEventListener("click", submitGateApproval);
+        formEl.appendChild(applyBtn);
+      }
+    }
+  }
+
+  function submitGatePassword(){
+    var input = document.getElementById("gate-password-input");
+    var pw = input.value.trim();
+    if (!pw) return;
+    api("/api/topics/" + state.currentTopicId + "/join", { method: "POST", body: { password: pw } })
+      .then(function(data){
+        state.currentTopicMyStatus = data.status;
+        if (data.status === "approved"){
+          stopTopicPolling();
+          toast("验证成功");
+          enterTopicContent();
+        }
+      })
+      .catch(function(e){ toast(friendlyError(e)); });
+  }
+
+  function submitGateApproval(){
+    api("/api/topics/" + state.currentTopicId + "/join", { method: "POST", body: {} })
+      .then(function(data){
+        state.currentTopicMyStatus = data.status;
+        if (data.status === "approved"){
+          stopTopicPolling();
+          toast("已加入");
+          enterTopicContent();
+        } else {
+          renderGate();
+          if (!state.msgPoller) state.msgPoller = setInterval(checkJoinStatus, 4000);
+        }
+      })
+      .catch(function(e){ toast(friendlyError(e)); });
+  }
+
+  // ---------- join requests (creator reviewing approval-mode topics) ----------
+  function refreshJoinRequests(){
+    if (!state.currentTopicId) return;
+    api("/api/topics/" + state.currentTopicId + "/join-requests").then(function(data){
+      state.joinRequests = data.requests || [];
+      renderJoinRequests();
+    }).catch(function(){});
+  }
+
+  function renderJoinRequests(){
+    var listEl = document.getElementById("join-requests-list");
+    if (!state.joinRequests.length){
+      listEl.innerHTML = '<div class="empty">还没有申请。</div>';
+      return;
+    }
+    listEl.innerHTML = "";
+    var pending = state.joinRequests.filter(function(r){ return r.status === "pending"; });
+    var decided = state.joinRequests.filter(function(r){ return r.status !== "pending"; });
+    pending.concat(decided).forEach(function(r){
+      var row = el('<div class="join-req-row"></div>');
+      row.appendChild(avatarChip(r.account_name));
+      var nameEl = el('<div class="join-req-name"></div>');
+      nameEl.textContent = r.account_name;
+      row.appendChild(nameEl);
+      var timeEl = el('<div class="join-req-time"></div>');
+      timeEl.textContent = fmtTime(r.created_at);
+      row.appendChild(timeEl);
+      if (r.status === "pending"){
+        var actions = el('<div class="join-req-actions"></div>');
+        var approveBtn = el('<button type="button" class="btn primary sm">通过</button>');
+        approveBtn.addEventListener("click", function(){ decideJoinRequest(r.id, "approve"); });
+        var rejectBtn = el('<button type="button" class="btn sm">拒绝</button>');
+        rejectBtn.addEventListener("click", function(){ decideJoinRequest(r.id, "reject"); });
+        actions.appendChild(approveBtn);
+        actions.appendChild(rejectBtn);
+        row.appendChild(actions);
+      } else {
+        var statusEl = el('<span class="join-req-status"></span>');
+        statusEl.classList.add(r.status);
+        statusEl.textContent = r.status === "approved" ? "已通过" : "已拒绝";
+        row.appendChild(statusEl);
+      }
+      listEl.appendChild(row);
+    });
+  }
+
+  function decideJoinRequest(reqId, action){
+    api("/api/topics/" + state.currentTopicId + "/join-requests/" + reqId, { method: "PATCH", body: { action: action } })
+      .then(refreshJoinRequests)
+      .catch(function(e){ toast(friendlyError(e)); });
+  }
+
+  // ---------- topic settings (rename + access control) ----------
   var topicTitleView = document.getElementById("topic-title-view");
   var topicTitleEdit = document.getElementById("topic-title-edit");
   var topicTitleText = document.getElementById("topic-title-text");
   var topicRenameInput = document.getElementById("topic-rename-input");
+  var topicSettingsPanel = document.getElementById("topic-settings-panel");
+  var topicAccessSelect = document.getElementById("topic-access-select");
+  var topicAccessPassword = document.getElementById("topic-access-password");
+
   function showTopicTitleView(){
     topicTitleView.hidden = false;
     topicTitleEdit.hidden = true;
+  }
+  function hideTopicSettingsPanel(){
+    topicSettingsPanel.hidden = true;
   }
   function showTopicTitleEdit(){
     topicRenameInput.value = topicTitleText.textContent || "";
     topicTitleView.hidden = true;
     topicTitleEdit.hidden = false;
+    topicSettingsPanel.hidden = false;
+    topicAccessSelect.value = state.currentTopicAccessMode || "public";
+    topicAccessPassword.value = "";
+    document.getElementById("topic-password-row").hidden = topicAccessSelect.value !== "password";
     topicRenameInput.focus();
   }
   document.getElementById("topic-rename-btn").addEventListener("click", showTopicTitleEdit);
-  document.getElementById("topic-rename-cancel").addEventListener("click", showTopicTitleView);
-  function saveTopicRename(){
+  document.getElementById("topic-rename-cancel").addEventListener("click", function(){
+    showTopicTitleView();
+    hideTopicSettingsPanel();
+  });
+  topicAccessSelect.addEventListener("change", function(){
+    document.getElementById("topic-password-row").hidden = this.value !== "password";
+  });
+  function saveTopicSettings(){
     var name = topicRenameInput.value.trim();
     if (!name || !state.currentTopicId) return;
-    api("/api/topics/" + state.currentTopicId, { method: "PATCH", body: { name: name } })
+    var body = { name: name };
+    var newMode = topicAccessSelect.value;
+    var pw = topicAccessPassword.value.trim();
+    if (newMode !== state.currentTopicAccessMode || (newMode === "password" && pw)){
+      if (newMode === "password" && !pw){ toast("切换成密码模式需要设置一个密码"); return; }
+      if (newMode === "password" && pw.length < 4){ toast("密码至少 4 位"); return; }
+      body.access_mode = newMode;
+      if (newMode === "password") body.password = pw;
+    }
+    api("/api/topics/" + state.currentTopicId, { method: "PATCH", body: body })
       .then(function(t){
         topicTitleText.textContent = t.name || name;
+        state.currentTopicAccessMode = t.access_mode || "public";
+        state.currentTopicMyStatus = "approved";
+        updateRequestsTabVisibility();
         showTopicTitleView();
+        hideTopicSettingsPanel();
         loadTopics();
+        toast("已保存");
       })
       .catch(function(e){ toast(friendlyError(e)); });
   }
-  document.getElementById("topic-rename-save").addEventListener("click", saveTopicRename);
+  document.getElementById("topic-rename-save").addEventListener("click", saveTopicSettings);
   topicRenameInput.addEventListener("keydown", function(ev){
-    if (ev.key === "Enter") saveTopicRename();
-    if (ev.key === "Escape") showTopicTitleView();
+    if (ev.key === "Enter") saveTopicSettings();
+    if (ev.key === "Escape"){ showTopicTitleView(); hideTopicSettingsPanel(); }
   });
 
   function refreshMembers(){

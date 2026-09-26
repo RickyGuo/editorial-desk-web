@@ -1,7 +1,13 @@
-import { getSessionAccount, json } from "../../../../_lib/auth.js";
+import { getSessionAccount, getTopicAccess, json } from "../../../../_lib/auth.js";
 
 // GET: list checklists for a topic, each with its ordered items.
-export async function onRequestGet({ params, env }) {
+export async function onRequestGet({ request, params, env }) {
+  var account = await getSessionAccount(request, env);
+  if (!account) return json({ error: "unauthorized" }, { status: 401 });
+  var access = await getTopicAccess(env, params.id, account.id);
+  if (!access.topic) return json({ error: "not_found" }, { status: 404 });
+  if (!access.allowed) return json({ error: "access_denied", status: access.status }, { status: 403 });
+
   var checklists = (await env.DB.prepare(
     "SELECT id, title, created_by, created_at FROM checklists WHERE topic_id = ? ORDER BY created_at ASC"
   ).bind(params.id).all()).results || [];
@@ -24,6 +30,9 @@ export async function onRequestGet({ params, env }) {
 export async function onRequestPost({ request, params, env }) {
   var account = await getSessionAccount(request, env);
   if (!account) return json({ error: "unauthorized" }, { status: 401 });
+  var access = await getTopicAccess(env, params.id, account.id);
+  if (!access.topic) return json({ error: "not_found" }, { status: 404 });
+  if (!access.allowed) return json({ error: "access_denied", status: access.status }, { status: 403 });
 
   var body;
   try { body = await request.json(); } catch (e) { return json({ error: "bad_request" }, { status: 400 }); }
