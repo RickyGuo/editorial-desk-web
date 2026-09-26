@@ -105,7 +105,47 @@
   .toast{position:fixed;left:50%;bottom:20px;transform:translate(-50%,20px);background:var(--ink);color:var(--paper);padding:10px 16px;border-radius:999px;font-size:13px;font-weight:600;opacity:0;transition:opacity .25s ease,transform .25s ease;pointer-events:none;z-index:50;max-width:calc(100% - 32px);text-align:center}
   .toast.show{opacity:1;transform:translate(-50%,0)}
 
-  .roadmap{font-size:12px;color:var(--ink-dim);text-align:center;padding:6px 0}
+  .tabbar{display:flex;gap:4px;border-bottom:1px solid var(--line);overflow-x:auto}
+  .tabbar button{border:none;background:transparent;color:var(--ink-dim);padding:9px 4px;font-weight:700;font-size:13px;white-space:nowrap;border-bottom:2px solid transparent;flex:none}
+  .tabbar button.active{color:var(--accent);border-bottom-color:var(--accent)}
+  .tab-panel{display:flex;flex-direction:column;gap:16px}
+
+  .checklist{border-top:1px solid var(--line);padding-block:14px}
+  .checklist:first-child{border-top:none;padding-top:0}
+  .checklist-title{font-weight:700;font-size:14.5px;margin-bottom:8px}
+  .relay-item{display:flex;align-items:center;gap:10px;padding-block:8px;border-top:1px dashed var(--line)}
+  .relay-item:first-child{border-top:none}
+  .relay-num{flex:none;width:22px;height:22px;border-radius:50%;background:var(--paper);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--ink-dim)}
+  .relay-item.is-done .relay-num{background:var(--done-ink);border-color:var(--done);color:var(--done)}
+  .relay-item.is-active .relay-num{background:var(--accent-ink);border-color:var(--accent);color:var(--accent)}
+  .relay-main{flex:1;min-width:0}
+  .relay-text{font-size:13.5px}
+  .relay-item.is-done .relay-text{color:var(--ink-dim);text-decoration:line-through}
+  .relay-meta{font-size:11px;color:var(--ink-dim);margin-top:1px}
+  .relay-actions{flex:none;display:flex;gap:6px}
+  .new-item-row{display:flex;gap:6px;margin-top:10px}
+  .new-item-row input{flex:1}
+
+  .poll{border-top:1px solid var(--line);padding-block:14px}
+  .poll:first-child{border-top:none;padding-top:0}
+  .poll-q{font-weight:700;font-size:14.5px;margin-bottom:2px}
+  .poll-meta{font-size:11.5px;color:var(--ink-dim);margin-bottom:10px}
+  .poll-option{position:relative;border:1px solid var(--line);border-radius:var(--radius-sm);padding:9px 12px;margin-bottom:6px;overflow:hidden;background:var(--paper);cursor:pointer;width:100%;text-align:left}
+  .poll-option .fill{position:absolute;inset:0;background:var(--accent-ink);width:0%;transition:width .3s ease;z-index:0}
+  .poll-option.mine{border-color:var(--accent)}
+  .poll-option .fg{position:relative;z-index:1;display:flex;justify-content:space-between;gap:10px;font-size:13px}
+  .poll-option .fg b{font-weight:700}
+  .poll-option:disabled{cursor:default;opacity:.85}
+
+  .activity-row{display:flex;align-items:center;gap:10px;padding-block:10px;border-top:1px solid var(--line)}
+  .activity-row:first-child{border-top:none}
+  .activity-rank{flex:none;width:20px;text-align:center;font-weight:800;color:var(--ink-dim);font-size:12.5px}
+  .activity-row:nth-child(1) .activity-rank{color:var(--mark)}
+  .activity-name{flex:1;min-width:0;font-weight:600;font-size:13.5px}
+  .activity-nums{flex:none;display:flex;gap:10px;font-size:11.5px;color:var(--ink-dim);font-variant-numeric:tabular-nums}
+  .activity-nums b{color:var(--ink);font-weight:700}
+
+  footer.version-footer{max-width:720px;margin:0 auto;padding:4px 16px 18px;text-align:center;font-size:11px;color:var(--ink-dim)}
 </style>
 </head>
 <body>
@@ -169,7 +209,6 @@
       <div class="card-head" style="margin-bottom:10px"><h2 style="font-size:15px">所有主题</h2></div>
       <div id="topic-list" class="topic-list"><div class="empty">还没有主题，创建第一个。</div></div>
     </div>
-    <div class="roadmap">任务接力 / 投票 / 活跃度排行下一步再加</div>
   </section>
 
   <section class="screen" id="screen-topic" hidden>
@@ -181,18 +220,66 @@
       <div id="nickname-area"></div>
     </div>
 
-    <div class="card">
-      <div class="composer">
-        <textarea id="msg-input" rows="2" placeholder="在这个主题里写点什么…"></textarea>
-        <div class="row end"><button class="btn primary" id="msg-send">发布</button></div>
+    <div class="tabbar">
+      <button type="button" class="tab-btn active" data-tab="board">留言板</button>
+      <button type="button" class="tab-btn" data-tab="relay">任务接力</button>
+      <button type="button" class="tab-btn" data-tab="polls">投票</button>
+      <button type="button" class="tab-btn" data-tab="activity">活跃度</button>
+    </div>
+
+    <div class="tab-panel" id="tab-board">
+      <div class="card">
+        <div class="composer">
+          <textarea id="msg-input" rows="2" placeholder="在这个主题里写点什么…"></textarea>
+          <div class="row end"><button class="btn primary" id="msg-send">发布</button></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h2>最新留言</h2></div>
+        <div id="msg-list" class="msg-list"><div class="empty">还没有留言，写下第一条。</div></div>
       </div>
     </div>
-    <div class="card">
-      <div class="card-head"><h2>最新留言</h2></div>
-      <div id="msg-list" class="msg-list"><div class="empty">还没有留言，写下第一条。</div></div>
+
+    <div class="tab-panel" id="tab-relay" hidden>
+      <div class="card">
+        <div class="card-head"><h2 style="font-size:15px">新建接力清单</h2></div>
+        <div class="auth-form">
+          <input type="text" id="relay-title" placeholder="清单标题，例如「第 3 期排版任务」">
+          <textarea id="relay-items" rows="3" placeholder="每行一个任务，按顺序接力，例如：&#10;初稿排版&#10;校对&#10;定稿发布"></textarea>
+          <div class="row end"><button class="btn primary" id="relay-create-btn">创建清单</button></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h2 style="font-size:15px">进行中的清单</h2></div>
+        <div id="relay-list"><div class="empty">还没有接力清单。</div></div>
+      </div>
+    </div>
+
+    <div class="tab-panel" id="tab-polls" hidden>
+      <div class="card">
+        <div class="card-head"><h2 style="font-size:15px">发起投票</h2></div>
+        <div class="auth-form">
+          <input type="text" id="poll-question" placeholder="投票问题">
+          <textarea id="poll-options" rows="3" placeholder="每行一个选项，至少两个，例如：&#10;方案 A&#10;方案 B"></textarea>
+          <div class="row end"><button class="btn primary" id="poll-create-btn">发起</button></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h2 style="font-size:15px">所有投票</h2></div>
+        <div id="poll-list"><div class="empty">还没有投票。</div></div>
+      </div>
+    </div>
+
+    <div class="tab-panel" id="tab-activity" hidden>
+      <div class="card">
+        <div class="card-head"><h2 style="font-size:15px">活跃度排行</h2></div>
+        <div id="activity-list"><div class="empty">还没有数据。</div></div>
+      </div>
     </div>
   </section>
 </div>
+
+<footer class="version-footer" id="version-footer"></footer>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
@@ -255,6 +342,10 @@
     });
   }
 
+  var VERSION = "v0.2.0";
+  var VERSION_DATE = "2026-09-26";
+  document.getElementById("version-footer").textContent = "编辑部协作台 " + VERSION + " · " + VERSION_DATE;
+
   var state = {
     account: null,
     topics: [],
@@ -262,6 +353,10 @@
     currentTopicCreatedBy: null,
     membersMap: {},
     messages: [],
+    checklists: [],
+    polls: [],
+    activity: [],
+    activeTab: "board",
     msgPoller: null, topicPoller: null
   };
 
@@ -384,6 +479,30 @@
 
   document.getElementById("back-btn").addEventListener("click", exitTopic);
 
+  // ---------- TABS ----------
+  var tabButtons = Array.prototype.slice.call(document.querySelectorAll(".tab-btn"));
+  var tabPanels = {
+    board: document.getElementById("tab-board"),
+    relay: document.getElementById("tab-relay"),
+    polls: document.getElementById("tab-polls"),
+    activity: document.getElementById("tab-activity")
+  };
+  function showTab(name){
+    state.activeTab = name;
+    tabButtons.forEach(function(b){ b.classList.toggle("active", b.dataset.tab === name); });
+    Object.keys(tabPanels).forEach(function(k){ tabPanels[k].hidden = k !== name; });
+    refreshActiveTab();
+  }
+  tabButtons.forEach(function(b){ b.addEventListener("click", function(){ showTab(b.dataset.tab); }); });
+
+  function refreshActiveTab(){
+    if (!state.currentTopicId) return;
+    if (state.activeTab === "board") refreshMessages();
+    else if (state.activeTab === "relay") refreshChecklists();
+    else if (state.activeTab === "polls") refreshPolls();
+    else if (state.activeTab === "activity") refreshActivity();
+  }
+
   // ---------- TOPIC ----------
   function stopTopicPolling(){
     if (state.msgPoller){ clearInterval(state.msgPoller); state.msgPoller = null; }
@@ -402,9 +521,9 @@
     state.currentTopicCreatedBy = topic.created_by;
     document.getElementById("topic-title-text").textContent = topic.name || "主题";
     showScreen("topic");
+    showTab("board");
     refreshMembers();
-    refreshMessages();
-    state.msgPoller = setInterval(function(){ refreshMessages(); refreshMembers(); }, 4000);
+    state.msgPoller = setInterval(function(){ refreshMembers(); refreshActiveTab(); }, 4000);
   }
 
   function refreshMembers(){
@@ -502,6 +621,211 @@
       .catch(function(e){ toast(friendlyError(e)); })
       .finally(function(){ btn.disabled = false; });
   });
+
+  // ---------- RELAY CHECKLISTS ----------
+  var relayListEl = document.getElementById("relay-list");
+
+  function refreshChecklists(){
+    if (!state.currentTopicId) return;
+    api("/api/topics/" + state.currentTopicId + "/checklists").then(function(data){
+      state.checklists = data.checklists || [];
+      renderChecklists();
+    }).catch(function(){});
+  }
+
+  function renderChecklists(){
+    if (!state.checklists.length){
+      relayListEl.innerHTML = '<div class="empty">还没有接力清单，创建第一个。</div>';
+      return;
+    }
+    relayListEl.innerHTML = "";
+    state.checklists.forEach(function(cl){
+      var wrap = el('<div class="checklist"><div class="checklist-title"></div><div class="relay-items"></div></div>');
+      wrap.querySelector(".checklist-title").textContent = cl.title;
+      var itemsEl = wrap.querySelector(".relay-items");
+      var items = cl.items || [];
+      var blocked = false; // once we hit a not-done item, everything after is locked
+      items.forEach(function(it, idx){
+        var row = el('<div class="relay-item"><span class="relay-num"></span><div class="relay-main"><div class="relay-text"></div><div class="relay-meta"></div></div><div class="relay-actions"></div></div>');
+        row.classList.add(it.status === "done" ? "is-done" : (it.status === "active" ? "is-active" : ""));
+        row.querySelector(".relay-num").textContent = String(idx + 1);
+        row.querySelector(".relay-text").textContent = it.text;
+        var metaEl = row.querySelector(".relay-meta");
+        var actionsEl = row.querySelector(".relay-actions");
+        var canClaim = it.status === "pending" && !blocked;
+
+        if (it.status === "done"){
+          metaEl.textContent = nameFor(it.assignee_id, it.assignee_name) + " 已完成 · " + fmtTime(it.done_at);
+        } else if (it.status === "active"){
+          metaEl.textContent = nameFor(it.assignee_id, it.assignee_name) + " 认领中 · " + fmtTime(it.claimed_at);
+          if (state.account && it.assignee_id === state.account.id){
+            var doneBtn = el('<button class="btn primary sm" type="button">完成</button>');
+            doneBtn.addEventListener("click", function(){ doItemAction(cl.id, it.id, "done"); });
+            var unclaimBtn = el('<button class="btn sm" type="button">放弃</button>');
+            unclaimBtn.addEventListener("click", function(){ doItemAction(cl.id, it.id, "unclaim"); });
+            actionsEl.appendChild(doneBtn);
+            actionsEl.appendChild(unclaimBtn);
+          }
+        } else {
+          metaEl.textContent = blocked ? "等待前面的任务完成" : "待认领";
+          if (canClaim && state.account){
+            var claimBtn = el('<button class="btn primary sm" type="button">认领</button>');
+            claimBtn.addEventListener("click", function(){ doItemAction(cl.id, it.id, "claim"); });
+            actionsEl.appendChild(claimBtn);
+          }
+        }
+
+        if (state.account && state.currentTopicCreatedBy === state.account.id){
+          var delBtn = el('<button class="btn ghost sm" type="button" style="color:var(--mark)">删除</button>');
+          delBtn.addEventListener("click", function(){
+            api("/api/topics/" + state.currentTopicId + "/checklists/" + cl.id + "/items/" + it.id, { method: "DELETE" })
+              .then(refreshChecklists).catch(function(e){ toast(friendlyError(e)); });
+          });
+          actionsEl.appendChild(delBtn);
+        }
+
+        if (it.status !== "done") blocked = true;
+        itemsEl.appendChild(row);
+      });
+
+      var addRow = el('<div class="new-item-row"><input type="text" placeholder="给这个清单加一项任务"><button class="btn sm" type="button">添加</button></div>');
+      var addInput = addRow.querySelector("input");
+      var addBtn = addRow.querySelector("button");
+      function submitAdd(){
+        var text = addInput.value.trim();
+        if (!text) return;
+        api("/api/topics/" + state.currentTopicId + "/checklists/" + cl.id + "/items", { method: "POST", body: { text: text } })
+          .then(function(){ addInput.value = ""; refreshChecklists(); })
+          .catch(function(e){ toast(friendlyError(e)); });
+      }
+      addBtn.addEventListener("click", submitAdd);
+      addInput.addEventListener("keydown", function(ev){ if (ev.key === "Enter") submitAdd(); });
+      wrap.appendChild(addRow);
+
+      relayListEl.appendChild(wrap);
+    });
+  }
+
+  function doItemAction(checklistId, itemId, action){
+    api("/api/topics/" + state.currentTopicId + "/checklists/" + checklistId + "/items/" + itemId, { method: "PATCH", body: { action: action } })
+      .then(refreshChecklists)
+      .catch(function(e){ toast(friendlyError(e)); });
+  }
+
+  document.getElementById("relay-create-btn").addEventListener("click", function(){
+    var titleInput = document.getElementById("relay-title");
+    var itemsInput = document.getElementById("relay-items");
+    var title = titleInput.value.trim();
+    if (!title) return;
+    var items = itemsInput.value.split("\n").map(function(s){ return s.trim(); }).filter(Boolean);
+    var btn = this; btn.disabled = true;
+    api("/api/topics/" + state.currentTopicId + "/checklists", { method: "POST", body: { title: title, items: items } })
+      .then(function(){ titleInput.value = ""; itemsInput.value = ""; refreshChecklists(); })
+      .catch(function(e){ toast(friendlyError(e)); })
+      .finally(function(){ btn.disabled = false; });
+  });
+
+  // ---------- POLLS ----------
+  var pollListEl = document.getElementById("poll-list");
+
+  function refreshPolls(){
+    if (!state.currentTopicId) return;
+    api("/api/topics/" + state.currentTopicId + "/polls").then(function(data){
+      state.polls = data.polls || [];
+      renderPolls();
+    }).catch(function(){});
+  }
+
+  function renderPolls(){
+    if (!state.polls.length){
+      pollListEl.innerHTML = '<div class="empty">还没有投票，发起第一个。</div>';
+      return;
+    }
+    pollListEl.innerHTML = "";
+    state.polls.forEach(function(p){
+      var wrap = el('<div class="poll"><div class="poll-q"></div><div class="poll-meta"></div><div class="poll-options"></div></div>');
+      wrap.querySelector(".poll-q").textContent = p.question;
+      var canModerate = state.account && (p.created_by === state.account.id || state.currentTopicCreatedBy === state.account.id);
+      var metaEl = wrap.querySelector(".poll-meta");
+      metaEl.textContent = p.total_votes + " 票" + (p.closed ? " · 已结束" : "");
+      if (canModerate){
+        var toggleBtn = el('<button class="btn ghost sm" type="button" style="padding:0;margin-left:6px"></button>');
+        toggleBtn.textContent = p.closed ? "重新开放" : "结束投票";
+        toggleBtn.addEventListener("click", function(){
+          api("/api/topics/" + state.currentTopicId + "/polls/" + p.id + "/close", { method: "POST" })
+            .then(refreshPolls).catch(function(e){ toast(friendlyError(e)); });
+        });
+        metaEl.appendChild(toggleBtn);
+      }
+      var optsEl = wrap.querySelector(".poll-options");
+      var total = p.total_votes || 0;
+      (p.options || []).forEach(function(opt){
+        var count = (p.tally && p.tally[opt.id]) || 0;
+        var pct = total ? Math.round((count / total) * 100) : 0;
+        var isMine = p.my_vote === opt.id;
+        var optBtn = el('<button type="button" class="poll-option"><span class="fill"></span><span class="fg"><span></span><b></b></span></button>');
+        optBtn.classList.toggle("mine", isMine);
+        optBtn.querySelector(".fill").style.width = pct + "%";
+        optBtn.querySelector(".fg span").textContent = (isMine ? "✓ " : "") + opt.text;
+        optBtn.querySelector(".fg b").textContent = count + " · " + pct + "%";
+        if (p.closed || !state.account) optBtn.disabled = true;
+        optBtn.addEventListener("click", function(){
+          api("/api/topics/" + state.currentTopicId + "/polls/" + p.id + "/vote", { method: "POST", body: { option_id: opt.id } })
+            .then(refreshPolls).catch(function(e){ toast(friendlyError(e)); });
+        });
+        optsEl.appendChild(optBtn);
+      });
+      pollListEl.appendChild(wrap);
+    });
+  }
+
+  document.getElementById("poll-create-btn").addEventListener("click", function(){
+    var qInput = document.getElementById("poll-question");
+    var optsInput = document.getElementById("poll-options");
+    var question = qInput.value.trim();
+    var options = optsInput.value.split("\n").map(function(s){ return s.trim(); }).filter(Boolean);
+    if (!question || options.length < 2){ toast("至少填写问题和两个选项"); return; }
+    var btn = this; btn.disabled = true;
+    api("/api/topics/" + state.currentTopicId + "/polls", { method: "POST", body: { question: question, options: options } })
+      .then(function(){ qInput.value = ""; optsInput.value = ""; refreshPolls(); })
+      .catch(function(e){ toast(friendlyError(e)); })
+      .finally(function(){ btn.disabled = false; });
+  });
+
+  // ---------- ACTIVITY ----------
+  var activityListEl = document.getElementById("activity-list");
+
+  function refreshActivity(){
+    if (!state.currentTopicId) return;
+    api("/api/topics/" + state.currentTopicId + "/activity").then(function(data){
+      state.activity = data.activity || [];
+      renderActivity();
+    }).catch(function(){});
+  }
+
+  function renderActivity(){
+    if (!state.activity.length){
+      activityListEl.innerHTML = '<div class="empty">还没有数据。</div>';
+      return;
+    }
+    activityListEl.innerHTML = "";
+    state.activity.forEach(function(row, idx){
+      var name = nameFor(row.account_id, row.account_id);
+      var el2 = el('<div class="activity-row"><span class="activity-rank"></span></div>');
+      el2.querySelector(".activity-rank").textContent = "#" + (idx + 1);
+      el2.appendChild(avatarChip(name));
+      var nameEl = el('<div class="activity-name"></div>');
+      nameEl.textContent = name;
+      el2.appendChild(nameEl);
+      var numsEl = el('<div class="activity-nums"><span></span><span></span><span></span></div>');
+      var spans = numsEl.querySelectorAll("span");
+      spans[0].innerHTML = ""; spans[0].appendChild(document.createTextNode("留言 ")); var b1 = document.createElement("b"); b1.textContent = row.messages; spans[0].appendChild(b1);
+      spans[1].appendChild(document.createTextNode("完成 ")); var b2 = document.createElement("b"); b2.textContent = row.items_done; spans[1].appendChild(b2);
+      spans[2].appendChild(document.createTextNode("投票 ")); var b3 = document.createElement("b"); b3.textContent = row.votes; spans[2].appendChild(b3);
+      el2.appendChild(numsEl);
+      activityListEl.appendChild(el2);
+    });
+  }
 
   // ---------- boot ----------
   function afterAuth(){
