@@ -353,7 +353,7 @@
     });
   }
 
-  var VERSION = "v0.3.0";
+  var VERSION = "v0.3.1";
   var VERSION_DATE = "2026-09-26";
   document.getElementById("version-footer").textContent = "编辑部协作台 " + VERSION + " · " + VERSION_DATE;
 
@@ -368,6 +368,7 @@
     polls: [],
     activity: [],
     activeTab: "board",
+    editingNickname: false,
     msgPoller: null, topicPoller: null
   };
 
@@ -531,6 +532,7 @@
 
   function enterTopic(topic){
     stopTopicPolling();
+    state.editingNickname = false;
     state.currentTopicId = topic.id;
     state.currentTopicCreatedBy = topic.created_by;
     document.getElementById("topic-title-text").textContent = topic.name || "主题";
@@ -596,12 +598,20 @@
   }
 
   // ---------- nickname ----------
+  // NOTE: refreshMembers() polls every 4s and calls renderNicknameArea() each
+  // time. While the user has the edit box open, that re-render must be
+  // skipped entirely, or it wipes out whatever they're mid-typing and the
+  // box appears to "close itself" — that was the bug. state.editingNickname
+  // is the guard: set true the moment an editable input is shown, cleared
+  // only on save/cancel/escape, so polling can't interrupt editing.
   var nickArea = document.getElementById("nickname-area");
   function renderNicknameArea(){
+    if (state.editingNickname) return;
     nickArea.innerHTML = "";
     if (!state.account) return;
     var mine = state.membersMap[state.account.id];
     if (!mine || !mine.nickname){
+      state.editingNickname = true;
       var prompt = el('<div class="nick-prompt"><div>在这个主题里，你想用什么名字？</div><div class="nickname-edit"><input type="text" id="nick-input" placeholder="你的昵称"><button class="btn primary sm" id="nick-save">确定</button></div></div>');
       nickArea.appendChild(prompt);
       var input = document.getElementById("nick-input");
@@ -616,19 +626,26 @@
     }
   }
   function showNicknameEditor(current){
+    state.editingNickname = true;
     nickArea.innerHTML = "";
-    var row = el('<div class="nickname-edit"><input type="text" id="nick-input" value=""><button class="btn primary sm" id="nick-save">保存</button></div>');
+    var row = el('<div class="nickname-edit"><input type="text" id="nick-input" value=""><button class="btn primary sm" id="nick-save">保存</button><button type="button" class="btn sm" id="nick-cancel">取消</button></div>');
     nickArea.appendChild(row);
-    document.getElementById("nick-input").value = current || "";
+    var input = document.getElementById("nick-input");
+    input.value = current || "";
     document.getElementById("nick-save").addEventListener("click", saveNickname);
-    document.getElementById("nick-input").addEventListener("keydown", function(ev){ if (ev.key === "Enter") saveNickname(); });
+    document.getElementById("nick-cancel").addEventListener("click", function(){ state.editingNickname = false; renderNicknameArea(); });
+    input.addEventListener("keydown", function(ev){
+      if (ev.key === "Enter") saveNickname();
+      if (ev.key === "Escape"){ state.editingNickname = false; renderNicknameArea(); }
+    });
+    input.focus();
   }
   function saveNickname(){
     var input = document.getElementById("nick-input");
     var v = input.value.trim();
     if (!v || !state.currentTopicId) return;
     api("/api/topics/" + state.currentTopicId + "/members", { method: "POST", body: { nickname: v } })
-      .then(function(){ refreshMembers(); })
+      .then(function(){ state.editingNickname = false; refreshMembers(); })
       .catch(function(e){ toast(friendlyError(e)); });
   }
 
