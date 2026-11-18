@@ -1,4 +1,4 @@
-import { getSessionAccount, json } from "../../../_lib/auth.js";
+import { getSessionAccount, json } from "../../../../_lib/auth.js";
 
 // GET: list join requests for this topic. Creator-only.
 export async function onRequestGet({ request, params, env }) {

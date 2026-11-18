@@ -1,4 +1,4 @@
-import { getSessionAccount, hashPassword, randomHex, json } from "../../_lib/auth.js";
+import { getSessionAccount, hashPassword, randomHex, json } from "../../../_lib/auth.js";
 
 // PATCH: rename a topic / change its description / change its access control.
 // Restricted to the topic's creator (the same "moderator" role already used

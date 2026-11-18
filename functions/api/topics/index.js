@@ -1,4 +1,4 @@
-import { getSessionAccount, hashPassword, randomHex, json } from "../_lib/auth.js";
+import { getSessionAccount, hashPassword, randomHex, json } from "../../_lib/auth.js";
 
 // GET: list all topics. Every topic's name/description/access_mode is public
 // (so people can see it exists and decide whether to request access), but

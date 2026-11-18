@@ -1,4 +1,4 @@
-import { getSessionAccount, hashPassword, json } from "../../_lib/auth.js";
+import { getSessionAccount, hashPassword, json } from "../../../_lib/auth.js";
 
 // GET: current user's access status for this topic, with no side effects.
 export async function onRequestGet({ request, params, env }) {
