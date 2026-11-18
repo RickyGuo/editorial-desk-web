@@ -194,6 +194,69 @@
   .tc-badge-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
   .tc-badge-row .tc-badge{margin-top:0}
   .tc-badge.masked{background:var(--line);color:var(--ink-dim)}
+
+  .fmt-bar{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:6px 8px;background:var(--paper);border:1px solid var(--line);border-radius:var(--radius-sm)}
+  .fmt-group{display:flex;align-items:center;gap:4px}
+  .fmt-sep{width:1px;height:18px;background:var(--line);margin-inline:2px}
+  .fmt-color{width:18px;height:18px;border-radius:50%;border:2px solid transparent;padding:0;background:transparent;position:relative;flex:none}
+  .fmt-color.active{border-color:var(--ink);transform:scale(1.1)}
+  .fmt-color.is-default{background:linear-gradient(135deg,var(--ink) 50%,var(--paper-raised) 50%);border:1px solid var(--line)}
+  .fmt-color.is-default.active{border:2px solid var(--accent)}
+  .fmt-picker{width:24px;height:22px;padding:0;border:1px solid var(--line);border-radius:6px;background:var(--paper-raised);cursor:pointer}
+  .fmt-bar select{width:auto;padding:3px 6px;font-size:12px;border-radius:6px}
+  .fmt-btn{border:1px solid var(--line);background:var(--paper-raised);color:var(--ink);border-radius:6px;padding:3px 8px;font-size:12px;font-weight:700;line-height:1.3}
+  .fmt-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}
+
+  .composer-actions{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+  .composer-tools{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+  .compress-box{background:var(--accent-ink);border:1px solid var(--accent);border-radius:var(--radius-sm);padding:8px 10px;font-size:12.5px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+  .compress-bar{flex:1 1 160px;height:6px;background:rgba(0,0,0,.1);border-radius:999px;overflow:hidden}
+  .compress-bar > span{display:block;height:100%;background:var(--accent);width:0%;transition:width .15s linear}
+
+  .composer-media{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius-sm);padding:10px;display:flex;flex-direction:column;gap:8px}
+  .composer-media-head{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:12px;color:var(--ink-dim)}
+  .composer-media-preview{position:relative;max-width:340px;border-radius:var(--radius-sm);overflow:hidden;border:1px solid var(--line);background:#0001}
+  .composer-media-preview img,.composer-media-preview video{display:block;width:100%;max-height:240px;object-fit:contain}
+  .layout-pills{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+  .layout-pill{border:1px solid var(--line);background:var(--paper-raised);color:var(--ink-dim);border-radius:999px;padding:3px 9px;font-size:11.5px;font-weight:700}
+  .layout-pill.active{background:var(--accent-ink);border-color:var(--accent);color:var(--accent)}
+
+  .msg-content{display:flex;flex-direction:column;gap:8px;margin-top:2px}
+  .msg-content.layout-top{flex-direction:column-reverse}
+  @media (min-width:560px){
+    .msg-content.layout-left{flex-direction:row-reverse;align-items:flex-start;gap:12px}
+    .msg-content.layout-right{flex-direction:row;align-items:flex-start;gap:12px}
+    .msg-content.layout-left .msg-text,.msg-content.layout-right .msg-text{flex:1;min-width:0}
+    .msg-content.layout-left .msg-media,.msg-content.layout-right .msg-media{flex:0 0 46%;max-width:46%}
+  }
+  .msg-media{display:flex;flex-direction:column;gap:6px;min-width:0}
+  .msg-media-frame{position:relative;display:inline-block;max-width:100%;border-radius:var(--radius-sm);overflow:hidden;border:1px solid var(--line);background:var(--paper)}
+  .msg-media-frame img{display:block;max-width:100%;max-height:360px;width:auto;height:auto;cursor:zoom-in}
+  .msg-media-frame video{display:block;width:100%;max-height:360px;background:#000}
+  .anno-svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+  .anno-svg.interactive{pointer-events:auto;touch-action:none;cursor:crosshair}
+  .anno-shape-hl{filter:drop-shadow(0 0 6px rgba(255,255,255,.95))}
+
+  .anno-notes{display:flex;flex-direction:column;gap:4px}
+  .anno-note-chip{display:flex;align-items:flex-start;gap:6px;font-size:12px;padding:4px 7px;border-radius:8px;background:var(--paper);border:1px solid var(--line);cursor:pointer;text-align:left}
+  .anno-note-chip:hover,.anno-note-chip.active{border-color:var(--accent);background:var(--accent-ink)}
+  .anno-num{flex:none;width:18px;height:18px;border-radius:50%;color:#fff;font-size:11px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;text-shadow:0 1px 1px rgba(0,0,0,.4)}
+
+  .modal-backdrop{position:fixed;inset:0;background:rgba(15,18,24,.72);z-index:60;display:flex;align-items:center;justify-content:center;padding:14px}
+  .modal-card{background:var(--paper-raised);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);width:100%;max-width:760px;max-height:92vh;display:flex;flex-direction:column;overflow:hidden}
+  .modal-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line)}
+  .modal-head h3{font-size:15.5px;font-weight:600}
+  .modal-body{padding:12px 16px;overflow-y:auto;display:flex;flex-direction:column;gap:10px}
+  .modal-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 16px;border-top:1px solid var(--line);flex-wrap:wrap}
+  .anno-toolbar{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+  .anno-stage-wrap{display:flex;justify-content:center;background:var(--paper);border:1px solid var(--line);border-radius:var(--radius-sm);padding:8px;overflow:auto}
+  .anno-stage{position:relative;display:inline-block;max-width:100%;user-select:none}
+  .anno-stage img{display:block;max-width:100%;max-height:52vh;width:auto;height:auto}
+  .anno-edit-list{display:flex;flex-direction:column;gap:6px}
+  .anno-edit-row{display:flex;align-items:center;gap:8px}
+  .anno-edit-row input{flex:1;min-width:0;padding:6px 10px;font-size:13px}
+  .lightbox-stage{position:relative;display:inline-block;max-width:100%;margin:0 auto}
+  .lightbox-stage img{display:block;max-width:100%;max-height:70vh;width:auto;height:auto}
 </style>
 </head>
 <body>
@@ -365,8 +428,64 @@
       <div class="tab-panel" id="tab-board">
         <div class="card">
           <div class="composer">
-            <textarea id="msg-input" rows="2" placeholder="在这个主题里写点什么…"></textarea>
-            <div class="row end"><button class="btn primary" id="msg-send">发布</button></div>
+            <div class="fmt-bar" id="fmt-bar" aria-label="文字格式">
+              <div class="fmt-group" title="文字颜色">
+                <button type="button" class="fmt-color is-default active" data-color="" title="默认颜色"></button>
+                <button type="button" class="fmt-color" data-color="#E03131" style="background:#E03131" title="红色"></button>
+                <button type="button" class="fmt-color" data-color="#1971C2" style="background:#1971C2" title="蓝色"></button>
+                <button type="button" class="fmt-color" data-color="#2F9E44" style="background:#2F9E44" title="绿色"></button>
+                <button type="button" class="fmt-color" data-color="#D97706" style="background:#D97706" title="橙色"></button>
+                <button type="button" class="fmt-color" data-color="#7048E8" style="background:#7048E8" title="紫色"></button>
+                <input type="color" class="fmt-picker" id="fmt-color-picker" value="#3454D1" title="自定义文字颜色">
+              </div>
+              <span class="fmt-sep"></span>
+              <select id="fmt-size" title="字体大小">
+                <option value="sm">小号字</option>
+                <option value="md" selected>标准字</option>
+                <option value="lg">大号字</option>
+                <option value="xl">特大字</option>
+              </select>
+              <select id="fmt-family" title="字体样式">
+                <option value="sans" selected>黑体（常规）</option>
+                <option value="serif">宋体（衬线）</option>
+                <option value="mono">等宽（代码）</option>
+              </select>
+              <button type="button" class="fmt-btn" id="fmt-bold" title="加粗">B</button>
+              <button type="button" class="fmt-btn" id="fmt-italic" title="斜体"><i>I</i></button>
+              <button type="button" class="fmt-btn" id="fmt-reset" title="还原默认格式">重置</button>
+            </div>
+            <textarea id="msg-input" rows="3" placeholder="在这个主题里写点什么…（支持上传图片或短视频，可点击图片画箭头/圆圈并写备注）"></textarea>
+            <div class="compress-box" id="compress-box" hidden>
+              <span id="compress-status">正在压缩媒体…</span>
+              <div class="compress-bar"><span id="compress-bar-fill"></span></div>
+              <button type="button" class="btn sm" id="compress-cancel-btn">取消</button>
+            </div>
+            <div class="composer-media" id="composer-media" hidden>
+              <div class="composer-media-head">
+                <span id="composer-media-info">已附加媒体</span>
+                <div class="row" style="gap:6px">
+                  <button type="button" class="btn sm" id="composer-annotate-btn" hidden>✏️ 点击图片标注 / 加箭头与备注</button>
+                  <button type="button" class="btn sm" id="composer-media-clear">移除</button>
+                </div>
+              </div>
+              <div class="composer-media-preview" id="composer-media-preview"></div>
+              <div class="layout-pills" id="composer-layout-pills">
+                <span style="font-size:11.5px;color:var(--ink-dim)">媒体位置：</span>
+                <button type="button" class="layout-pill active" data-layout="bottom">文字下方</button>
+                <button type="button" class="layout-pill" data-layout="top">文字上方</button>
+                <button type="button" class="layout-pill" data-layout="left">文字左侧</button>
+                <button type="button" class="layout-pill" data-layout="right">文字右侧</button>
+              </div>
+              <div class="anno-notes" id="composer-anno-notes" hidden></div>
+            </div>
+            <div class="composer-actions">
+              <div class="composer-tools">
+                <input type="file" id="msg-media-input" accept="image/*,video/*" hidden>
+                <button type="button" class="btn sm" id="msg-pick-image">🖼️ 上传图片</button>
+                <button type="button" class="btn sm" id="msg-pick-video">🎬 上传视频（自动压缩）</button>
+              </div>
+              <button class="btn primary" id="msg-send">发布</button>
+            </div>
           </div>
         </div>
         <div class="card">
@@ -420,6 +539,72 @@
       </div>
     </div>
   </section>
+</div>
+
+<div class="modal-backdrop" id="anno-modal" hidden>
+  <div class="modal-card">
+    <div class="modal-head">
+      <h3>图片标注（点击或拖拽画箭头 / 圆圈，可写文字备注）</h3>
+      <button type="button" class="btn sm" id="anno-close-btn">关闭</button>
+    </div>
+    <div class="modal-body">
+      <div class="anno-toolbar">
+        <div class="fmt-group" id="anno-tool-group">
+          <button type="button" class="fmt-btn active" data-tool="arrow">↗ 箭头</button>
+          <button type="button" class="fmt-btn" data-tool="circle">◯ 圆圈</button>
+          <button type="button" class="fmt-btn" data-tool="rect">▢ 方框</button>
+          <button type="button" class="fmt-btn" data-tool="pin">💬 文字点</button>
+        </div>
+        <span class="fmt-sep"></span>
+        <div class="fmt-group" id="anno-color-group" title="标注颜色">
+          <button type="button" class="fmt-color active" data-color="#E03131" style="background:#E03131" title="红色"></button>
+          <button type="button" class="fmt-color" data-color="#1971C2" style="background:#1971C2" title="蓝色"></button>
+          <button type="button" class="fmt-color" data-color="#2F9E44" style="background:#2F9E44" title="绿色"></button>
+          <button type="button" class="fmt-color" data-color="#F08C00" style="background:#F08C00" title="橙色"></button>
+          <button type="button" class="fmt-color" data-color="#7048E8" style="background:#7048E8" title="紫色"></button>
+          <button type="button" class="fmt-color" data-color="#FFFFFF" style="background:#FFFFFF;border:1px solid #888" title="白色"></button>
+        </div>
+        <span class="fmt-sep"></span>
+        <button type="button" class="btn sm" id="anno-undo-btn">撤销</button>
+        <button type="button" class="btn sm" id="anno-clear-btn">清空</button>
+      </div>
+      <div class="anno-stage-wrap">
+        <div class="anno-stage" id="anno-stage">
+          <img id="anno-stage-img" alt="待标注图片" draggable="false">
+          <svg class="anno-svg interactive" id="anno-stage-svg"></svg>
+        </div>
+      </div>
+      <div class="anno-edit-list" id="anno-edit-list"></div>
+    </div>
+    <div class="modal-foot">
+      <span style="font-size:12px;color:var(--ink-dim)">提示：在图片上按住拖拽画出箭头或圆圈，或直接点击放置标注</span>
+      <div class="row" style="gap:8px">
+        <button type="button" class="btn sm" id="anno-cancel-btn">取消</button>
+        <button type="button" class="btn primary sm" id="anno-save-btn">保存标注</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="lightbox-modal" hidden>
+  <div class="modal-card">
+    <div class="modal-head">
+      <h3>查看大图</h3>
+      <div class="row" style="gap:8px">
+        <button type="button" class="btn sm" id="lightbox-toggle-anno">隐藏标注</button>
+        <button type="button" class="btn sm" id="lightbox-close-btn">关闭</button>
+      </div>
+    </div>
+    <div class="modal-body">
+      <div class="anno-stage-wrap">
+        <div class="lightbox-stage" id="lightbox-stage">
+          <img id="lightbox-img" alt="图片预览">
+          <svg class="anno-svg" id="lightbox-svg"></svg>
+        </div>
+      </div>
+      <div class="anno-notes" id="lightbox-notes"></div>
+    </div>
+  </div>
 </div>
 
 <footer class="version-footer" id="version-footer"></footer>
@@ -485,7 +670,7 @@
     });
   }
 
-  var VERSION = "v0.5.1";
+  var VERSION = "v0.6.0";
   var VERSION_DATE = "2026-11-18";
   document.getElementById("version-footer").textContent = "编辑部协作台 " + VERSION + " · " + VERSION_DATE;
 
@@ -637,7 +822,11 @@
     missing_password: "请输入密码",
     weak_join_password: "密码至少 4 位",
     missing_join_password: "切换成密码模式需要设置一个密码",
-    access_denied: "还没有权限查看这个主题的内容"
+    access_denied: "还没有权限查看这个主题的内容",
+    unsupported_media_type: "不支持的文件格式，请上传 JPG/PNG/WebP/GIF 图片或 MP4/WebM 视频",
+    media_too_large: "文件压缩后仍超过当前存储上限（D1 默认 5MB，绑定 R2 可支持 50MB）",
+    media_not_found: "附件未找到或已过期，请重新上传",
+    missing_text: "请输入留言内容或上传图片/视频"
   };
   function friendlyError(e){
     return (e && errorText[e.error]) || "操作失败，请稍后再试";
@@ -871,6 +1060,8 @@
 
   function exitTopic(){
     stopTopicPolling();
+    clearComposerMedia();
+    lastMsgRenderSig = "";
     state.currentTopicId = null;
     showScreen("home");
     loadTopics();
@@ -900,6 +1091,9 @@
 
   function enterTopic(topic){
     stopTopicPolling();
+    clearComposerMedia();
+    lastMsgRenderSig = "";
+    state.messages = [];
     state.editingNickname = false;
     state.currentTopicId = topic.id;
     state.currentTopicCreatedBy = topic.created_by;
@@ -1277,9 +1471,757 @@
       .catch(function(e){ toast(friendlyError(e)); });
   }
 
-  // ---------- messages ----------
+  // ---------- messages, formatting, media compression & annotations ----------
   var msgListEl = document.getElementById("msg-list");
+  var msgInputEl = document.getElementById("msg-input");
+  var lastMsgRenderSig = "";
+
+  var FONT_SIZES = { sm: "12.5px", md: "14px", lg: "16.5px", xl: "20px" };
+  var FONT_FAMILIES = {
+    sans: 'Manrope,-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif',
+    serif: 'Fraunces,"Songti SC","Noto Serif SC",serif',
+    mono: 'ui-monospace,SFMono-Regular,Menlo,Consolas,monospace'
+  };
+  var composerStyle = { color: "", size: "md", family: "sans", bold: false, italic: false };
+
+  function applyTextStyle(elNode, st){
+    if (!elNode) return;
+    st = st || {};
+    elNode.style.color = st.color || "";
+    elNode.style.fontSize = FONT_SIZES[st.size] || "";
+    elNode.style.fontFamily = FONT_FAMILIES[st.family] || "";
+    elNode.style.fontWeight = st.bold ? "700" : "";
+    elNode.style.fontStyle = st.italic ? "italic" : "";
+  }
+
+  function syncComposerFormatUI(){
+    var swatches = document.querySelectorAll("#fmt-bar .fmt-color");
+    Array.prototype.forEach.call(swatches, function(btn){
+      btn.classList.toggle("active", (btn.dataset.color || "") === composerStyle.color);
+    });
+    document.getElementById("fmt-size").value = composerStyle.size;
+    document.getElementById("fmt-family").value = composerStyle.family;
+    document.getElementById("fmt-bold").classList.toggle("active", !!composerStyle.bold);
+    document.getElementById("fmt-italic").classList.toggle("active", !!composerStyle.italic);
+    applyTextStyle(msgInputEl, composerStyle);
+  }
+
+  Array.prototype.forEach.call(document.querySelectorAll("#fmt-bar .fmt-color"), function(btn){
+    btn.addEventListener("click", function(){
+      composerStyle.color = btn.dataset.color || "";
+      syncComposerFormatUI();
+    });
+  });
+  document.getElementById("fmt-color-picker").addEventListener("input", function(){
+    composerStyle.color = this.value || "";
+    syncComposerFormatUI();
+  });
+  document.getElementById("fmt-size").addEventListener("change", function(){
+    composerStyle.size = this.value || "md";
+    syncComposerFormatUI();
+  });
+  document.getElementById("fmt-family").addEventListener("change", function(){
+    composerStyle.family = this.value || "sans";
+    syncComposerFormatUI();
+  });
+  document.getElementById("fmt-bold").addEventListener("click", function(){
+    composerStyle.bold = !composerStyle.bold;
+    syncComposerFormatUI();
+  });
+  document.getElementById("fmt-italic").addEventListener("click", function(){
+    composerStyle.italic = !composerStyle.italic;
+    syncComposerFormatUI();
+  });
+  document.getElementById("fmt-reset").addEventListener("click", function(){
+    composerStyle = { color: "", size: "md", family: "sans", bold: false, italic: false };
+    syncComposerFormatUI();
+  });
+
+  function currentPayloadStyle(){
+    var out = {};
+    if (composerStyle.color) out.color = composerStyle.color;
+    if (composerStyle.size !== "md") out.size = composerStyle.size;
+    if (composerStyle.family !== "sans") out.family = composerStyle.family;
+    if (composerStyle.bold) out.bold = true;
+    if (composerStyle.italic) out.italic = true;
+    return Object.keys(out).length ? out : null;
+  }
+
+  // --- Client-side Auto-Compression (Images + Videos) ---
+  function fmtBytes(bytes){
+    if (!bytes || bytes < 1024) return (bytes || 0) + " B";
+    if (bytes < 1024 * 1024) return Math.round(bytes / 1024) + " KB";
+    return (bytes / (1024 * 1024)).toFixed(1) + " MB";
+  }
+
+  function loadHtmlImage(file){
+    return new Promise(function(resolve, reject){
+      var url = URL.createObjectURL(file);
+      var img = new Image();
+      img.onload = function(){ URL.revokeObjectURL(url); resolve(img); };
+      img.onerror = function(){ URL.revokeObjectURL(url); reject(new Error("image_decode_failed")); };
+      img.src = url;
+    });
+  }
+
+  function canvasToBlobPromise(canvas, mime, quality){
+    return new Promise(function(resolve){
+      canvas.toBlob(function(b){ resolve(b); }, mime, quality);
+    });
+  }
+
+  async function compressImageFile(file){
+    if (file.type === "image/gif" && file.size <= 4.5 * 1024 * 1024){
+      return { blob: file, origSize: file.size, finalSize: file.size, kind: "image" };
+    }
+    var img = await loadHtmlImage(file);
+    var w = img.naturalWidth || img.width || 1280;
+    var h = img.naturalHeight || img.height || 720;
+    var maxSide = 1440;
+    if (file.size <= 260 * 1024 && Math.max(w, h) <= maxSide){
+      return { blob: file, origSize: file.size, finalSize: file.size, kind: "image" };
+    }
+
+    var scale = Math.min(1, maxSide / Math.max(w, h));
+    var tw = Math.max(1, Math.round(w * scale));
+    var th = Math.max(1, Math.round(h * scale));
+    var canvas = document.createElement("canvas");
+    canvas.width = tw; canvas.height = th;
+    var ctx = canvas.getContext("2d");
+    ctx.drawImage(img, 0, 0, tw, th);
+
+    var qualities = [0.82, 0.70, 0.56];
+    var bestBlob = null;
+    var mimes = ["image/webp", "image/jpeg"];
+    for (var m = 0; m < mimes.length; m++){
+      for (var q = 0; q < qualities.length; q++){
+        var b = await canvasToBlobPromise(canvas, mimes[m], qualities[q]);
+        if (!b || (b.type !== "image/webp" && b.type !== "image/jpeg")) continue;
+        bestBlob = b;
+        if (b.size <= 400 * 1024) break;
+      }
+      if (bestBlob && bestBlob.size <= 1.5 * 1024 * 1024) break;
+    }
+
+    if (bestBlob && bestBlob.size > 2.5 * 1024 * 1024){
+      var s2 = Math.min(1, 1080 / Math.max(w, h));
+      canvas.width = Math.max(1, Math.round(w * s2));
+      canvas.height = Math.max(1, Math.round(h * s2));
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      var b2 = await canvasToBlobPromise(canvas, bestBlob.type, 0.65);
+      if (b2 && b2.size < bestBlob.size) bestBlob = b2;
+    }
+
+    if (!bestBlob || (file.size <= 4.5 * 1024 * 1024 && bestBlob.size >= file.size && Math.max(w, h) <= maxSide)){
+      return { blob: file, origSize: file.size, finalSize: file.size, kind: "image" };
+    }
+    return { blob: bestBlob, origSize: file.size, finalSize: bestBlob.size, kind: "image" };
+  }
+
+  function pickVideoRecorderMime(){
+    if (typeof MediaRecorder === "undefined" || typeof MediaRecorder.isTypeSupported !== "function") return "";
+    var candidates = [
+      "video/mp4;codecs=avc1.42E01E,mp4a.40.2",
+      "video/mp4",
+      "video/webm;codecs=vp9,opus",
+      "video/webm;codecs=vp8,opus",
+      "video/webm"
+    ];
+    for (var i = 0; i < candidates.length; i++){
+      if (MediaRecorder.isTypeSupported(candidates[i])) return candidates[i];
+    }
+    return "";
+  }
+
+  async function compressVideoFile(file, onProgress, cancelState){
+    var url = URL.createObjectURL(file);
+    var video = document.createElement("video");
+    video.preload = "auto";
+    video.playsInline = true;
+    video.crossOrigin = "anonymous";
+    video.src = url;
+
+    var audioCtx = null;
+    var rafId = 0;
+    try {
+      await new Promise(function(resolve, reject){
+        var timer = setTimeout(function(){ reject(new Error("video_metadata_timeout")); }, 10000);
+        video.onloadedmetadata = function(){ clearTimeout(timer); resolve(); };
+        video.onerror = function(){ clearTimeout(timer); reject(new Error("video_decode_failed")); };
+      });
+      if (cancelState.cancelled) throw new Error("cancelled");
+
+      var vw = video.videoWidth || 640;
+      var vh = video.videoHeight || 360;
+      var duration = isFinite(video.duration) && video.duration > 0 ? video.duration : 10;
+
+      if (file.size <= 4.5 * 1024 * 1024 && Math.max(vw, vh) <= 720){
+        return { blob: file, origSize: file.size, finalSize: file.size, kind: "video" };
+      }
+
+      var recMime = pickVideoRecorderMime();
+      var canvas = document.createElement("canvas");
+      if (!recMime || typeof canvas.captureStream !== "function"){
+        if (file.size <= 5 * 1024 * 1024){
+          return { blob: file, origSize: file.size, finalSize: file.size, kind: "video" };
+        }
+        throw new Error("video_compress_unsupported");
+      }
+
+      var scale = Math.min(1, 720 / Math.max(vw, vh));
+      var tw = Math.max(2, Math.round((vw * scale) / 2) * 2);
+      var th = Math.max(2, Math.round((vh * scale) / 2) * 2);
+      canvas.width = tw; canvas.height = th;
+      var ctx = canvas.getContext("2d");
+
+      var stream = canvas.captureStream(24);
+      try {
+        var AC = window.AudioContext || window.webkitAudioContext;
+        if (AC){
+          audioCtx = new AC();
+          var srcNode = audioCtx.createMediaElementSource(video);
+          var destNode = audioCtx.createMediaStreamDestination();
+          srcNode.connect(destNode);
+          destNode.stream.getAudioTracks().forEach(function(tr){ stream.addTrack(tr); });
+          video.muted = false;
+        } else {
+          video.muted = true;
+        }
+      } catch (e){
+        video.muted = true;
+      }
+
+      var targetBits = 3.8 * 1024 * 1024 * 8;
+      var videoBps = Math.min(750000, Math.max(180000, Math.floor((targetBits / Math.max(duration, 1)) - 64000)));
+      var chunks = [];
+      var recorder = new MediaRecorder(stream, { mimeType: recMime, videoBitsPerSecond: videoBps, audioBitsPerSecond: 64000 });
+      recorder.ondataavailable = function(ev){ if (ev.data && ev.data.size > 0) chunks.push(ev.data); };
+
+      var donePromise = new Promise(function(resolve, reject){
+        recorder.onstop = function(){
+          if (cancelState.cancelled){ reject(new Error("cancelled")); return; }
+          var outType = recMime.split(";")[0];
+          resolve(new Blob(chunks, { type: outType }));
+        };
+        recorder.onerror = function(){ reject(new Error("video_record_failed")); };
+      });
+
+      function drawLoop(){
+        if (cancelState.cancelled){
+          try { video.pause(); } catch (e){}
+          try { if (recorder.state !== "inactive") recorder.stop(); } catch (e){}
+          return;
+        }
+        ctx.drawImage(video, 0, 0, tw, th);
+        onProgress(Math.min(99, Math.round((video.currentTime / duration) * 100)));
+        if (!video.paused && !video.ended){
+          rafId = requestAnimationFrame(drawLoop);
+        }
+      }
+
+      video.onended = function(){
+        onProgress(100);
+        if (recorder.state !== "inactive") recorder.stop();
+      };
+
+      recorder.start(250);
+      if (audioCtx && audioCtx.state === "suspended"){
+        try { await audioCtx.resume(); } catch (e){}
+      }
+      await video.play();
+      drawLoop();
+
+      var outBlob = await donePromise;
+      if (file.size <= 4.5 * 1024 * 1024 && outBlob.size >= file.size){
+        return { blob: file, origSize: file.size, finalSize: file.size, kind: "video" };
+      }
+      return { blob: outBlob, origSize: file.size, finalSize: outBlob.size, kind: "video" };
+    } finally {
+      if (rafId) cancelAnimationFrame(rafId);
+      try { video.pause(); video.removeAttribute("src"); } catch (e){}
+      URL.revokeObjectURL(url);
+      if (audioCtx){ try { audioCtx.close(); } catch (e){} }
+    }
+  }
+
+  // --- Attachment state & preview ---
+  var pendingMedia = null; // { kind, blob, previewUrl, origSize, finalSize, layout, annotations, uploadedId }
+  var activeCompressCancel = null;
+  var compressBox = document.getElementById("compress-box");
+  var compressStatus = document.getElementById("compress-status");
+  var compressBarFill = document.getElementById("compress-bar-fill");
+  var composerMediaEl = document.getElementById("composer-media");
+  var composerMediaInfo = document.getElementById("composer-media-info");
+  var composerMediaPreview = document.getElementById("composer-media-preview");
+  var composerAnnotateBtn = document.getElementById("composer-annotate-btn");
+  var composerAnnoNotes = document.getElementById("composer-anno-notes");
+  var mediaFileInput = document.getElementById("msg-media-input");
+
+  function clearComposerMedia(){
+    if (activeCompressCancel){
+      activeCompressCancel.cancelled = true;
+      activeCompressCancel = null;
+    }
+    compressBox.hidden = true;
+    if (pendingMedia && pendingMedia.previewUrl){
+      URL.revokeObjectURL(pendingMedia.previewUrl);
+    }
+    pendingMedia = null;
+    mediaFileInput.value = "";
+    composerMediaEl.hidden = true;
+    composerMediaPreview.innerHTML = "";
+    composerAnnoNotes.innerHTML = "";
+    composerAnnoNotes.hidden = true;
+    composerAnnotateBtn.hidden = true;
+  }
+
+  // --- SVG Annotation Renderer (shared by composer, messages, editor & lightbox) ---
+  var SHAPE_LABELS = { arrow: "箭头", circle: "圆圈", rect: "方框", pin: "文字点" };
+
+  function syncSvgViewBox(svgEl, imgEl){
+    var w = (imgEl && imgEl.naturalWidth) || 1000;
+    var h = (imgEl && imgEl.naturalHeight) || 750;
+    var vbW = 1000;
+    var vbH = Math.max(200, Math.round(1000 * h / w));
+    svgEl.setAttribute("viewBox", "0 0 " + vbW + " " + vbH);
+    return { w: vbW, h: vbH };
+  }
+
+  function svgNode(tag, attrs){
+    var node = document.createElementNS("http://www.w3.org/2000/svg", tag);
+    Object.keys(attrs || {}).forEach(function(k){ node.setAttribute(k, String(attrs[k])); });
+    return node;
+  }
+
+  function renderSvgAnnotations(svgEl, annotations, imgEl, highlightIdx){
+    svgEl.innerHTML = "";
+    if (!annotations || !annotations.length) return;
+    var vb = syncSvgViewBox(svgEl, imgEl);
+    var defs = svgNode("defs");
+    var filt = svgNode("filter", { id: "anno-shadow-" + Math.random().toString(36).slice(2, 7), x: "-20%", y: "-20%", width: "140%", height: "140%" });
+    filt.appendChild(svgNode("feDropShadow", { dx: 0, dy: 1.5, stdDeviation: 2, "flood-color": "#000000", "flood-opacity": "0.65" }));
+    defs.appendChild(filt);
+    svgEl.appendChild(defs);
+    var filterRef = "url(#" + filt.getAttribute("id") + ")";
+
+    annotations.forEach(function(a, idx){
+      var isHl = highlightIdx === idx;
+      var g = svgNode("g", { filter: filterRef });
+      if (isHl) g.setAttribute("class", "anno-shape-hl");
+      var sw = isHl ? 8 : 5;
+      var x1 = a.x1 * vb.w, y1 = a.y1 * vb.h;
+      var x2 = a.x2 * vb.w, y2 = a.y2 * vb.h;
+      var bx = x1, by = y1;
+
+      if (a.type === "arrow"){
+        var dx = x2 - x1, dy = y2 - y1;
+        var dist = Math.hypot(dx, dy) || 1;
+        var headLen = Math.min(34, Math.max(18, dist * 0.25));
+        var angle = Math.atan2(dy, dx);
+        var lineEndX = x2 - Math.cos(angle) * (headLen * 0.65);
+        var lineEndY = y2 - Math.sin(angle) * (headLen * 0.65);
+        g.appendChild(svgNode("line", {
+          x1: x1.toFixed(1), y1: y1.toFixed(1),
+          x2: lineEndX.toFixed(1), y2: lineEndY.toFixed(1),
+          stroke: a.color, "stroke-width": sw, "stroke-linecap": "round"
+        }));
+        var p1x = x2 - headLen * Math.cos(angle - Math.PI / 6);
+        var p1y = y2 - headLen * Math.sin(angle - Math.PI / 6);
+        var p2x = x2 - headLen * Math.cos(angle + Math.PI / 6);
+        var p2y = y2 - headLen * Math.sin(angle + Math.PI / 6);
+        g.appendChild(svgNode("polygon", {
+          points: x2.toFixed(1) + "," + y2.toFixed(1) + " " + p1x.toFixed(1) + "," + p1y.toFixed(1) + " " + p2x.toFixed(1) + "," + p2y.toFixed(1),
+          fill: a.color
+        }));
+        bx = x1; by = y1;
+      } else if (a.type === "circle"){
+        var cx = (x1 + x2) / 2, cy = (y1 + y2) / 2;
+        var rx = Math.max(14, Math.abs(x2 - x1) / 2);
+        var ry = Math.max(14, Math.abs(y2 - y1) / 2);
+        g.appendChild(svgNode("ellipse", {
+          cx: cx.toFixed(1), cy: cy.toFixed(1), rx: rx.toFixed(1), ry: ry.toFixed(1),
+          fill: "none", stroke: a.color, "stroke-width": sw
+        }));
+        bx = cx - rx; by = cy - ry;
+      } else if (a.type === "rect"){
+        var rx0 = Math.min(x1, x2), ry0 = Math.min(y1, y2);
+        var rw = Math.max(24, Math.abs(x2 - x1)), rh = Math.max(24, Math.abs(y2 - y1));
+        g.appendChild(svgNode("rect", {
+          x: rx0.toFixed(1), y: ry0.toFixed(1), width: rw.toFixed(1), height: rh.toFixed(1),
+          rx: 8, fill: "none", stroke: a.color, "stroke-width": sw
+        }));
+        bx = rx0; by = ry0;
+      } else {
+        g.appendChild(svgNode("circle", {
+          cx: x1.toFixed(1), cy: y1.toFixed(1), r: isHl ? 24 : 20,
+          fill: a.color, "fill-opacity": "0.25", stroke: a.color, "stroke-width": 4
+        }));
+        bx = x1; by = y1;
+      }
+
+      var clampedBx = Math.max(18, Math.min(vb.w - 18, bx));
+      var clampedBy = Math.max(18, Math.min(vb.h - 18, by));
+      g.appendChild(svgNode("circle", {
+        cx: clampedBx.toFixed(1), cy: clampedBy.toFixed(1), r: 15,
+        fill: a.color, stroke: "#FFFFFF", "stroke-width": 2.5
+      }));
+      var txt = svgNode("text", {
+        x: clampedBx.toFixed(1), y: (clampedBy + 5.5).toFixed(1),
+        "text-anchor": "middle", fill: (a.color === "#FFFFFF" ? "#111111" : "#FFFFFF"),
+        "font-size": "16", "font-weight": "800", "font-family": "sans-serif"
+      });
+      txt.textContent = String(idx + 1);
+      g.appendChild(txt);
+      svgEl.appendChild(g);
+    });
+  }
+
+  function renderAnnoNotesList(containerEl, annotations, onHighlight){
+    containerEl.innerHTML = "";
+    var hasAny = false;
+    (annotations || []).forEach(function(a, idx){
+      if (!a.note && a.type !== "pin") return;
+      hasAny = true;
+      var chip = el('<button type="button" class="anno-note-chip"><span class="anno-num"></span><span class="anno-note-txt"></span></button>');
+      var numEl = chip.querySelector(".anno-num");
+      numEl.textContent = String(idx + 1);
+      numEl.style.background = a.color;
+      if (a.color === "#FFFFFF"){ numEl.style.color = "#111"; numEl.style.border = "1px solid #999"; }
+      chip.querySelector(".anno-note-txt").textContent = a.note || ("(" + (SHAPE_LABELS[a.type] || "标注") + ")");
+      if (onHighlight){
+        chip.addEventListener("mouseenter", function(){ onHighlight(idx); });
+        chip.addEventListener("mouseleave", function(){ onHighlight(-1); });
+        chip.addEventListener("click", function(ev){ ev.stopPropagation(); onHighlight(idx); });
+      }
+      containerEl.appendChild(chip);
+    });
+    containerEl.hidden = !hasAny;
+  }
+
+  function buildAnnotatedImageFrame(url, annotations, onClickImage){
+    var frame = el('<div class="msg-media-frame"><img alt="附件图片" loading="lazy"><svg class="anno-svg"></svg></div>');
+    var img = frame.querySelector("img");
+    var svg = frame.querySelector("svg");
+    img.src = url;
+    var hlIdx = -1;
+    function redraw(){ renderSvgAnnotations(svg, annotations, img, hlIdx); }
+    img.addEventListener("load", redraw);
+    if (img.complete) redraw();
+    if (onClickImage){
+      img.addEventListener("click", onClickImage);
+    }
+    return {
+      frame: frame,
+      highlight: function(idx){ hlIdx = idx; redraw(); }
+    };
+  }
+
+  function renderComposerMedia(){
+    if (!pendingMedia){
+      composerMediaEl.hidden = true;
+      return;
+    }
+    composerMediaEl.hidden = false;
+    var savedNote = pendingMedia.finalSize < pendingMedia.origSize
+      ? ("（已自动压缩：" + fmtBytes(pendingMedia.origSize) + " → " + fmtBytes(pendingMedia.finalSize) + "）")
+      : ("（" + fmtBytes(pendingMedia.finalSize) + "）");
+    composerMediaInfo.textContent = (pendingMedia.kind === "video" ? "🎬 视频附件" : "🖼️ 图片附件") + " " + savedNote;
+
+    composerMediaPreview.innerHTML = "";
+    if (pendingMedia.kind === "image"){
+      composerAnnotateBtn.hidden = false;
+      var built = buildAnnotatedImageFrame(pendingMedia.previewUrl, pendingMedia.annotations, openAnnotationModal);
+      composerMediaPreview.appendChild(built.frame);
+      renderAnnoNotesList(composerAnnoNotes, pendingMedia.annotations, built.highlight);
+    } else {
+      composerAnnotateBtn.hidden = true;
+      composerAnnoNotes.hidden = true;
+      var vid = document.createElement("video");
+      vid.controls = true; vid.playsInline = true; vid.src = pendingMedia.previewUrl;
+      composerMediaPreview.appendChild(vid);
+    }
+
+    Array.prototype.forEach.call(document.querySelectorAll("#composer-layout-pills .layout-pill"), function(btn){
+      btn.classList.toggle("active", btn.dataset.layout === pendingMedia.layout);
+    });
+  }
+
+  Array.prototype.forEach.call(document.querySelectorAll("#composer-layout-pills .layout-pill"), function(btn){
+    btn.addEventListener("click", function(){
+      if (!pendingMedia) return;
+      pendingMedia.layout = btn.dataset.layout || "bottom";
+      renderComposerMedia();
+    });
+  });
+
+  document.getElementById("composer-media-clear").addEventListener("click", clearComposerMedia);
+  document.getElementById("compress-cancel-btn").addEventListener("click", function(){
+    if (activeCompressCancel) activeCompressCancel.cancelled = true;
+  });
+
+  document.getElementById("msg-pick-image").addEventListener("click", function(){
+    mediaFileInput.accept = "image/*";
+    mediaFileInput.click();
+  });
+  document.getElementById("msg-pick-video").addEventListener("click", function(){
+    mediaFileInput.accept = "video/*";
+    mediaFileInput.click();
+  });
+
+  mediaFileInput.addEventListener("change", async function(){
+    var file = this.files && this.files[0];
+    if (!file) return;
+    clearComposerMedia();
+    var isVideo = (file.type || "").indexOf("video/") === 0;
+    var cancelState = { cancelled: false };
+    activeCompressCancel = cancelState;
+    compressBox.hidden = false;
+    compressBarFill.style.width = isVideo ? "2%" : "45%";
+    compressStatus.textContent = isVideo
+      ? ("正在压缩视频 (" + fmtBytes(file.size) + ")…")
+      : ("正在压缩图片 (" + fmtBytes(file.size) + ")…");
+
+    try {
+      var res = isVideo
+        ? await compressVideoFile(file, function(pct){
+            compressBarFill.style.width = pct + "%";
+            compressStatus.textContent = "正在压缩视频 (" + fmtBytes(file.size) + ")… " + pct + "%";
+          }, cancelState)
+        : await compressImageFile(file);
+
+      if (cancelState.cancelled) return;
+      compressBarFill.style.width = "100%";
+      compressBox.hidden = true;
+      activeCompressCancel = null;
+
+      if (res.finalSize > 5 * 1024 * 1024){
+        toast("压缩后仍为 " + fmtBytes(res.finalSize) + "，可能超过 D1 默认 5MB 限制（可剪短或绑定 R2）");
+      }
+
+      pendingMedia = {
+        kind: res.kind,
+        blob: res.blob,
+        previewUrl: URL.createObjectURL(res.blob),
+        origSize: res.origSize,
+        finalSize: res.finalSize,
+        layout: "bottom",
+        annotations: [],
+        uploadedId: null
+      };
+      renderComposerMedia();
+    } catch (e){
+      compressBox.hidden = true;
+      activeCompressCancel = null;
+      if (e && e.message === "cancelled"){
+        toast("已取消压缩");
+      } else if (e && e.message === "video_compress_unsupported"){
+        toast("当前浏览器不支持在线压缩该视频，请先裁剪到 5MB 以内");
+      } else {
+        toast("读取或压缩媒体失败，请换一个文件重试");
+      }
+    }
+  });
+
+  // --- Image Annotation Modal ---
+  var annoModal = document.getElementById("anno-modal");
+  var annoStageImg = document.getElementById("anno-stage-img");
+  var annoStageSvg = document.getElementById("anno-stage-svg");
+  var annoEditList = document.getElementById("anno-edit-list");
+  var annoDraft = [];
+  var annoTool = "arrow";
+  var annoColor = "#E03131";
+  var annoDrawing = null;
+
+  Array.prototype.forEach.call(document.querySelectorAll("#anno-tool-group .fmt-btn"), function(btn){
+    btn.addEventListener("click", function(){
+      annoTool = btn.dataset.tool || "arrow";
+      Array.prototype.forEach.call(document.querySelectorAll("#anno-tool-group .fmt-btn"), function(b){
+        b.classList.toggle("active", b === btn);
+      });
+    });
+  });
+  Array.prototype.forEach.call(document.querySelectorAll("#anno-color-group .fmt-color"), function(btn){
+    btn.addEventListener("click", function(){
+      annoColor = btn.dataset.color || "#E03131";
+      Array.prototype.forEach.call(document.querySelectorAll("#anno-color-group .fmt-color"), function(b){
+        b.classList.toggle("active", b === btn);
+      });
+    });
+  });
+
+  function renderAnnoStage(previewShape){
+    var list = previewShape ? annoDraft.concat([previewShape]) : annoDraft;
+    renderSvgAnnotations(annoStageSvg, list, annoStageImg, previewShape ? list.length - 1 : -1);
+  }
+
+  function renderAnnoEditList(focusLast){
+    annoEditList.innerHTML = "";
+    if (!annoDraft.length){
+      annoEditList.innerHTML = '<div style="font-size:12px;color:var(--ink-dim)">还没有标注。在上方图片上点击或拖拽即可添加箭头、圆圈或文字点。</div>';
+      return;
+    }
+    annoDraft.forEach(function(a, idx){
+      var row = el('<div class="anno-edit-row"><span class="anno-num"></span><span style="font-size:12px;color:var(--ink-dim);flex:none"></span><input type="text" maxlength="120" placeholder="输入文字备注（可选，例如：这里需要修改）"><button type="button" class="btn sm">删</button></div>');
+      var numEl = row.querySelector(".anno-num");
+      numEl.textContent = String(idx + 1);
+      numEl.style.background = a.color;
+      if (a.color === "#FFFFFF"){ numEl.style.color = "#111"; numEl.style.border = "1px solid #999"; }
+      row.children[1].textContent = SHAPE_LABELS[a.type] || "标注";
+      var inp = row.querySelector("input");
+      inp.value = a.note || "";
+      inp.addEventListener("input", function(){ a.note = inp.value; });
+      inp.addEventListener("focus", function(){ renderSvgAnnotations(annoStageSvg, annoDraft, annoStageImg, idx); });
+      inp.addEventListener("blur", function(){ renderAnnoStage(); });
+      inp.addEventListener("keydown", function(ev){ if (ev.key === "Enter" && !ev.isComposing) inp.blur(); });
+      row.querySelector("button").addEventListener("click", function(){
+        annoDraft.splice(idx, 1);
+        renderAnnoStage();
+        renderAnnoEditList(false);
+      });
+      annoEditList.appendChild(row);
+    });
+    if (focusLast){
+      var inputs = annoEditList.querySelectorAll("input");
+      if (inputs.length) inputs[inputs.length - 1].focus();
+    }
+  }
+
+  function pointerToNorm(ev){
+    var rect = annoStageSvg.getBoundingClientRect();
+    var x = rect.width ? (ev.clientX - rect.left) / rect.width : 0.5;
+    var y = rect.height ? (ev.clientY - rect.top) / rect.height : 0.5;
+    return { x: Math.max(0, Math.min(1, x)), y: Math.max(0, Math.min(1, y)) };
+  }
+
+  annoStageSvg.addEventListener("pointerdown", function(ev){
+    if (ev.button !== undefined && ev.button !== 0) return;
+    ev.preventDefault();
+    try { annoStageSvg.setPointerCapture(ev.pointerId); } catch (e){}
+    var pt = pointerToNorm(ev);
+    annoDrawing = {
+      id: "a" + Date.now() + "_" + Math.random().toString(36).slice(2, 5),
+      type: annoTool,
+      color: annoColor,
+      x1: pt.x, y1: pt.y, x2: pt.x, y2: pt.y,
+      note: ""
+    };
+    renderAnnoStage(annoDrawing);
+  });
+
+  annoStageSvg.addEventListener("pointermove", function(ev){
+    if (!annoDrawing) return;
+    var pt = pointerToNorm(ev);
+    annoDrawing.x2 = pt.x;
+    annoDrawing.y2 = pt.y;
+    renderAnnoStage(annoDrawing);
+  });
+
+  function finishAnnoDraw(ev){
+    if (!annoDrawing) return;
+    var shape = annoDrawing;
+    annoDrawing = null;
+    try { if (ev && ev.pointerId !== undefined) annoStageSvg.releasePointerCapture(ev.pointerId); } catch (e){}
+    var dist = Math.hypot(shape.x2 - shape.x1, shape.y2 - shape.y1);
+    if (shape.type === "pin"){
+      shape.x2 = shape.x1; shape.y2 = shape.y1;
+    } else if (dist < 0.025){
+      if (shape.type === "arrow"){
+        shape.x1 = Math.max(0.05, shape.x1 - 0.08);
+        shape.y1 = Math.max(0.05, shape.y1 - 0.08);
+        shape.x2 = Math.min(0.95, shape.x1 + 0.11);
+        shape.y2 = Math.min(0.95, shape.y1 + 0.11);
+      } else {
+        var cx = shape.x1, cy = shape.y1;
+        shape.x1 = Math.max(0.02, cx - 0.07); shape.y1 = Math.max(0.02, cy - 0.07);
+        shape.x2 = Math.min(0.98, cx + 0.07); shape.y2 = Math.min(0.98, cy + 0.07);
+      }
+    }
+    if (annoDraft.length >= 30){
+      toast("单张图片最多添加 30 条标注");
+    } else {
+      annoDraft.push(shape);
+    }
+    renderAnnoStage();
+    renderAnnoEditList(true);
+  }
+
+  annoStageSvg.addEventListener("pointerup", finishAnnoDraw);
+  annoStageSvg.addEventListener("pointercancel", finishAnnoDraw);
+
+  function openAnnotationModal(){
+    if (!pendingMedia || pendingMedia.kind !== "image") return;
+    annoDraft = (pendingMedia.annotations || []).map(function(a){ return Object.assign({}, a); });
+    annoStageImg.src = pendingMedia.previewUrl;
+    annoModal.hidden = false;
+    annoStageImg.onload = function(){ renderAnnoStage(); };
+    if (annoStageImg.complete) renderAnnoStage();
+    renderAnnoEditList(false);
+  }
+  document.getElementById("composer-annotate-btn").addEventListener("click", openAnnotationModal);
+  document.getElementById("anno-undo-btn").addEventListener("click", function(){
+    if (annoDraft.length){ annoDraft.pop(); renderAnnoStage(); renderAnnoEditList(false); }
+  });
+  document.getElementById("anno-clear-btn").addEventListener("click", function(){
+    annoDraft = []; renderAnnoStage(); renderAnnoEditList(false);
+  });
+  function closeAnnoModal(){ annoModal.hidden = true; annoDrawing = null; }
+  document.getElementById("anno-close-btn").addEventListener("click", closeAnnoModal);
+  document.getElementById("anno-cancel-btn").addEventListener("click", closeAnnoModal);
+  document.getElementById("anno-save-btn").addEventListener("click", function(){
+    if (pendingMedia){
+      pendingMedia.annotations = annoDraft.map(function(a){
+        return Object.assign({}, a, { note: (a.note || "").trim() });
+      });
+      renderComposerMedia();
+    }
+    closeAnnoModal();
+  });
+
+  // --- Lightbox Modal ---
+  var lightboxModal = document.getElementById("lightbox-modal");
+  var lightboxImg = document.getElementById("lightbox-img");
+  var lightboxSvg = document.getElementById("lightbox-svg");
+  var lightboxNotes = document.getElementById("lightbox-notes");
+  var lightboxToggleBtn = document.getElementById("lightbox-toggle-anno");
+  var lightboxShowAnno = true;
+  var lightboxCurrentAnnos = [];
+
+  function redrawLightbox(hlIdx){
+    if (!lightboxShowAnno){
+      lightboxSvg.innerHTML = "";
+      lightboxToggleBtn.textContent = "显示标注";
+    } else {
+      renderSvgAnnotations(lightboxSvg, lightboxCurrentAnnos, lightboxImg, hlIdx);
+      lightboxToggleBtn.textContent = "隐藏标注";
+    }
+  }
+
+  function openLightbox(url, annotations){
+    lightboxCurrentAnnos = annotations || [];
+    lightboxShowAnno = true;
+    lightboxToggleBtn.hidden = !lightboxCurrentAnnos.length;
+    lightboxImg.src = url;
+    lightboxModal.hidden = false;
+    lightboxImg.onload = function(){ redrawLightbox(-1); };
+    if (lightboxImg.complete) redrawLightbox(-1);
+    renderAnnoNotesList(lightboxNotes, lightboxCurrentAnnos, function(idx){ redrawLightbox(idx); });
+  }
+  lightboxToggleBtn.addEventListener("click", function(){
+    lightboxShowAnno = !lightboxShowAnno;
+    redrawLightbox(-1);
+  });
+  document.getElementById("lightbox-close-btn").addEventListener("click", function(){ lightboxModal.hidden = true; });
+  lightboxModal.addEventListener("click", function(ev){ if (ev.target === lightboxModal) lightboxModal.hidden = true; });
+
+  // --- Message List Rendering ---
   function renderMessages(){
+    var sig = (state.currentTopicCreatedBy || "") + "|" + (state.account ? state.account.id : "") + "|" +
+      state.messages.map(function(m){
+        return m.id + ":" + nameFor(m.author_id, m.author_name);
+      }).join(",");
+    if (sig === lastMsgRenderSig) return;
+    lastMsgRenderSig = sig;
+
     if (!state.messages.length){
       msgListEl.innerHTML = '<div class="empty">还没有留言，写下第一条。</div>';
       return;
@@ -1289,16 +2231,50 @@
       var displayName = nameFor(m.author_id, m.author_name);
       var row = el('<div class="msg"></div>');
       row.appendChild(avatarChip(displayName));
-      var body = el('<div class="msg-body"><div class="msg-head"><span class="msg-name"></span><span class="msg-time"></span></div><div class="msg-text"></div></div>');
+      var body = el('<div class="msg-body"><div class="msg-head"><span class="msg-name"></span><span class="msg-time"></span></div><div class="msg-content"></div></div>');
       body.querySelector(".msg-name").textContent = displayName;
       body.querySelector(".msg-time").textContent = fmtTime(m.created_at);
-      body.querySelector(".msg-text").textContent = m.text || "";
+
+      var contentEl = body.querySelector(".msg-content");
+      var layout = m.media_layout || "bottom";
+      if (m.media_url) contentEl.classList.add("layout-" + layout);
+
+      var hasText = !!(m.text && m.text.length);
+      if (hasText || !m.media_url){
+        var textEl = el('<div class="msg-text"></div>');
+        textEl.textContent = m.text || "";
+        applyTextStyle(textEl, m.style);
+        contentEl.appendChild(textEl);
+      }
+
+      if (m.media_url){
+        var mediaWrap = el('<div class="msg-media"></div>');
+        if (m.media_type === "video"){
+          var frame = el('<div class="msg-media-frame"><video controls playsinline preload="metadata"></video></div>');
+          frame.querySelector("video").src = m.media_url;
+          mediaWrap.appendChild(frame);
+        } else {
+          var annos = Array.isArray(m.annotations) ? m.annotations : [];
+          var built = buildAnnotatedImageFrame(m.media_url, annos, function(){
+            openLightbox(m.media_url, annos);
+          });
+          mediaWrap.appendChild(built.frame);
+          if (annos.length){
+            var notesEl = el('<div class="anno-notes"></div>');
+            renderAnnoNotesList(notesEl, annos, built.highlight);
+            mediaWrap.appendChild(notesEl);
+          }
+        }
+        contentEl.appendChild(mediaWrap);
+      }
+
       row.appendChild(body);
       if (state.account && state.currentTopicCreatedBy === state.account.id){
         var delBtn = el('<button class="msg-del" type="button">删除</button>');
         delBtn.addEventListener("click", function(){
           api("/api/topics/" + state.currentTopicId + "/messages/" + m.id, { method: "DELETE" })
-            .then(refreshMessages).catch(function(e){ toast(friendlyError(e)); });
+            .then(function(){ lastMsgRenderSig = ""; refreshMessages(); })
+            .catch(function(e){ toast(friendlyError(e)); });
         });
         row.querySelector(".msg-head").appendChild(delBtn);
       }
@@ -1306,17 +2282,65 @@
     });
   }
 
-  document.getElementById("msg-send").addEventListener("click", function(){
-    var input = document.getElementById("msg-input");
-    var text = input.value.trim();
-    if (!text || !state.currentTopicId) return;
+  async function uploadPendingMedia(topicId){
+    if (!pendingMedia) return null;
+    if (pendingMedia.uploadedId) return pendingMedia.uploadedId;
+    var fd = new FormData();
+    var ext = pendingMedia.kind === "video"
+      ? (pendingMedia.blob.type.indexOf("mp4") !== -1 ? "mp4" : "webm")
+      : (pendingMedia.blob.type.indexOf("webp") !== -1 ? "webp" : (pendingMedia.blob.type.indexOf("gif") !== -1 ? "gif" : "jpg"));
+    fd.append("file", pendingMedia.blob, "upload." + ext);
+    var res = await fetch("/api/topics/" + topicId + "/media", {
+      method: "POST",
+      credentials: "same-origin",
+      body: fd
+    });
+    var data = await res.json().catch(function(){ return {}; });
+    if (!res.ok) throw { status: res.status, error: (data && data.error) || "upload_failed" };
+    pendingMedia.uploadedId = data.id;
+    return data.id;
+  }
+
+  document.getElementById("msg-send").addEventListener("click", async function(){
+    if (!state.currentTopicId) return;
+    if (activeCompressCancel){ toast("请等待媒体压缩完成"); return; }
+    var text = msgInputEl.value.trim();
+    if (!text && !pendingMedia){
+      toast("请输入留言内容或上传图片/视频");
+      return;
+    }
     var btn = this; btn.disabled = true;
-    api("/api/topics/" + state.currentTopicId + "/messages", { method: "POST", body: { text: text } })
-      .then(function(){ input.value = ""; refreshMessages(); })
-      .catch(function(e){ toast(friendlyError(e)); })
-      .finally(function(){ btn.disabled = false; });
+    var origLabel = btn.textContent;
+    try {
+      var mediaId = null;
+      if (pendingMedia){
+        btn.textContent = "上传中…";
+        mediaId = await uploadPendingMedia(state.currentTopicId);
+      }
+      btn.textContent = "发送中…";
+      var body = { text: text };
+      var st = currentPayloadStyle();
+      if (st) body.style = st;
+      if (mediaId){
+        body.media_id = mediaId;
+        body.media_layout = pendingMedia.layout || "bottom";
+        if (pendingMedia.kind === "image" && pendingMedia.annotations && pendingMedia.annotations.length){
+          body.annotations = pendingMedia.annotations;
+        }
+      }
+      await api("/api/topics/" + state.currentTopicId + "/messages", { method: "POST", body: body });
+      msgInputEl.value = "";
+      clearComposerMedia();
+      lastMsgRenderSig = "";
+      refreshMessages();
+    } catch (e){
+      toast(friendlyError(e));
+    } finally {
+      btn.disabled = false;
+      btn.textContent = origLabel;
+    }
   });
-  document.getElementById("msg-input").addEventListener("keydown", function(ev){
+  msgInputEl.addEventListener("keydown", function(ev){
     if (ev.isComposing) return;
     if (ev.key === "Enter" && (ev.metaKey || ev.ctrlKey)){
       ev.preventDefault();

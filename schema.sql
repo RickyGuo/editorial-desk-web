@@ -52,7 +52,31 @@ CREATE TABLE IF NOT EXISTS messages (
   author_id TEXT NOT NULL,
   author_name TEXT NOT NULL,
   text TEXT NOT NULL,
+  style TEXT NOT NULL DEFAULT '',
+  media_id TEXT,
+  media_type TEXT,
+  media_layout TEXT NOT NULL DEFAULT 'bottom',
+  annotations TEXT NOT NULL DEFAULT '',
   created_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS media_files (
+  id TEXT PRIMARY KEY,
+  topic_id TEXT NOT NULL,
+  uploader_id TEXT NOT NULL,
+  kind TEXT NOT NULL,                       -- image | video
+  mime_type TEXT NOT NULL,
+  size_bytes INTEGER NOT NULL,
+  chunk_count INTEGER NOT NULL,
+  storage TEXT NOT NULL DEFAULT 'd1',       -- d1 | r2
+  created_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS media_chunks (
+  media_id TEXT NOT NULL,
+  chunk_index INTEGER NOT NULL,
+  data TEXT NOT NULL,
+  PRIMARY KEY (media_id, chunk_index)
 );
 
 CREATE TABLE IF NOT EXISTS checklists (
@@ -110,6 +134,7 @@ CREATE TABLE IF NOT EXISTS join_requests (
 );
 
 CREATE INDEX IF NOT EXISTS idx_messages_topic ON messages(topic_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_media_topic ON media_files(topic_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_sessions_expiry ON sessions(expires_at);
 CREATE INDEX IF NOT EXISTS idx_checklists_topic ON checklists(topic_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_items_checklist ON checklist_items(checklist_id, order_num);

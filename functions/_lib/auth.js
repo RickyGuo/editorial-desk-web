@@ -66,9 +66,17 @@ export async function ensureMigrations(env) {
       "ALTER TABLE topics ADD COLUMN join_password_hash TEXT",
       "ALTER TABLE topics ADD COLUMN title_prefix TEXT NOT NULL DEFAULT ''",
       "ALTER TABLE topics ADD COLUMN mask_title INTEGER NOT NULL DEFAULT 0",
+      "ALTER TABLE messages ADD COLUMN style TEXT NOT NULL DEFAULT ''",
+      "ALTER TABLE messages ADD COLUMN media_id TEXT",
+      "ALTER TABLE messages ADD COLUMN media_type TEXT",
+      "ALTER TABLE messages ADD COLUMN media_layout TEXT NOT NULL DEFAULT 'bottom'",
+      "ALTER TABLE messages ADD COLUMN annotations TEXT NOT NULL DEFAULT ''",
       "CREATE TABLE IF NOT EXISTS join_requests (id TEXT PRIMARY KEY, topic_id TEXT NOT NULL, account_id TEXT NOT NULL, account_name TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'pending', created_at TEXT NOT NULL, decided_at TEXT, UNIQUE (topic_id, account_id))",
+      "CREATE TABLE IF NOT EXISTS media_files (id TEXT PRIMARY KEY, topic_id TEXT NOT NULL, uploader_id TEXT NOT NULL, kind TEXT NOT NULL, mime_type TEXT NOT NULL, size_bytes INTEGER NOT NULL, chunk_count INTEGER NOT NULL, storage TEXT NOT NULL DEFAULT 'd1', created_at TEXT NOT NULL)",
+      "CREATE TABLE IF NOT EXISTS media_chunks (media_id TEXT NOT NULL, chunk_index INTEGER NOT NULL, data TEXT NOT NULL, PRIMARY KEY (media_id, chunk_index))",
       "CREATE INDEX IF NOT EXISTS idx_join_requests_topic ON join_requests(topic_id, status)",
-      "CREATE INDEX IF NOT EXISTS idx_join_requests_account ON join_requests(account_id)"
+      "CREATE INDEX IF NOT EXISTS idx_join_requests_account ON join_requests(account_id)",
+      "CREATE INDEX IF NOT EXISTS idx_media_topic ON media_files(topic_id, created_at)"
     ];
     for (var i = 0; i < statements.length; i++) {
       try {
