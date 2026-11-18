@@ -64,9 +64,17 @@
   .tc-badge.pending{background:var(--accent-ink);color:var(--accent)}
   .tc-badge.rejected{background:var(--mark-ink);color:var(--mark)}
   .new-topic-form{display:flex;flex-direction:column;gap:8px}
-  .new-topic-form .row2{display:flex;gap:8px}
-  .new-topic-form .row2 input:first-child{flex:1.2}
-  .new-topic-form .row2 input:last-child{flex:1.6}
+  .new-topic-form .row2{display:flex;gap:8px;flex-wrap:wrap}
+  .new-topic-form .row2 input{flex:1 1 200px;min-width:0}
+  .new-topic-form .row2 input:first-child{flex:1.2 1 200px}
+  .new-topic-form .row2 input:last-child{flex:1.6 1 220px}
+  .pw-group{display:flex;flex-direction:column;gap:6px}
+  .pw-row{display:flex;gap:8px;flex-wrap:wrap}
+  .pw-row input{flex:1 1 200px;min-width:0}
+  .pw-hint{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:11.5px;color:var(--ink-dim);flex-wrap:wrap}
+  .pw-hint .ok{color:var(--done);font-weight:600}
+  .pw-hint .warn{color:var(--mark);font-weight:600}
+  .pw-toggle{background:none;border:none;color:var(--accent);font-size:11.5px;font-weight:700;padding:0;flex:none}
 
   .topic-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
   .topic-head-left{display:flex;align-items:center;gap:10px;min-width:0}
@@ -225,13 +233,22 @@
           <input type="text" id="new-topic-name" placeholder="主题名称，例如「高考写作书更新组」">
           <input type="text" id="new-topic-desc" placeholder="一句话说明（可选）">
         </div>
-        <div class="row2">
+        <div>
           <select id="new-topic-access">
             <option value="public" selected>公开 — 任何账户都能直接进入</option>
             <option value="password">需要密码才能加入</option>
             <option value="approval">需要我审核通过才能加入</option>
           </select>
-          <input type="text" id="new-topic-password" placeholder="设置加入密码（至少4位）" hidden>
+        </div>
+        <div class="pw-group" id="new-topic-password-wrap" hidden>
+          <div class="pw-row">
+            <input type="text" id="new-topic-password" placeholder="设置加入密码（至少4位）" autocomplete="new-password">
+            <input type="text" id="new-topic-password2" placeholder="再次输入确认密码" autocomplete="new-password">
+          </div>
+          <div class="pw-hint">
+            <span id="new-topic-pw-status">请输入至少 4 位密码，并在右侧再次确认</span>
+            <button type="button" class="pw-toggle" id="new-topic-pw-toggle">隐藏密码</button>
+          </div>
         </div>
         <div class="row end"><button class="btn primary" id="new-topic-btn">创建主题</button></div>
       </div>
@@ -269,8 +286,21 @@
         </select>
       </div>
       <div class="settings-row" id="topic-password-row" hidden>
-        <label>设置新的加入密码（留空 = 不修改已有密码）</label>
-        <input type="text" id="topic-access-password" placeholder="至少4位">
+        <label>设置或修改加入密码（原密码单向加密存储无法查看；留空 = 不修改已有密码）</label>
+        <div class="pw-group">
+          <div class="pw-row">
+            <input type="text" id="topic-access-password" placeholder="输入新密码（至少4位）" autocomplete="new-password">
+            <input type="text" id="topic-access-password2" placeholder="再次输入确认新密码" autocomplete="new-password">
+          </div>
+          <div class="pw-hint">
+            <span id="topic-access-pw-status">留空表示保持原有密码不变</span>
+            <button type="button" class="pw-toggle" id="topic-access-pw-toggle">隐藏密码</button>
+          </div>
+        </div>
+      </div>
+      <div class="row end">
+        <button type="button" class="btn sm" id="topic-settings-cancel">取消</button>
+        <button type="button" class="btn primary sm" id="topic-settings-save">保存设置</button>
       </div>
     </div>
 
@@ -412,9 +442,43 @@
     });
   }
 
-  var VERSION = "v0.4.1";
+  var VERSION = "v0.4.2";
   var VERSION_DATE = "2026-11-18";
   document.getElementById("version-footer").textContent = "编辑部协作台 " + VERSION + " · " + VERSION_DATE;
+
+  function bindPasswordPair(input1, input2, statusEl, toggleBtn, getEmptyText){
+    function updateStatus(){
+      var pw1 = input1.value.trim();
+      var pw2 = input2.value.trim();
+      statusEl.className = "";
+      if (!pw1 && !pw2){
+        statusEl.textContent = getEmptyText();
+      } else if (!pw1 && pw2){
+        statusEl.textContent = "请先在左侧输入密码";
+        statusEl.className = "warn";
+      } else if (pw1.length < 4){
+        statusEl.textContent = "已输入 " + pw1.length + " 位（至少需要 4 位）";
+        statusEl.className = "warn";
+      } else if (!pw2){
+        statusEl.textContent = "已输入 " + pw1.length + " 位，请再次输入确认密码";
+      } else if (pw1 !== pw2){
+        statusEl.textContent = "已输入 " + pw1.length + " 位 · 两次输入的密码不一致";
+        statusEl.className = "warn";
+      } else {
+        statusEl.textContent = "已输入 " + pw1.length + " 位 · 两次密码一致 ✓";
+        statusEl.className = "ok";
+      }
+    }
+    input1.addEventListener("input", updateStatus);
+    input2.addEventListener("input", updateStatus);
+    toggleBtn.addEventListener("click", function(){
+      var nextType = input1.type === "password" ? "text" : "password";
+      input1.type = nextType;
+      input2.type = nextType;
+      toggleBtn.textContent = nextType === "password" ? "显示密码" : "隐藏密码";
+    });
+    return updateStatus;
+  }
 
   var state = {
     account: null,
@@ -568,28 +632,47 @@
     }).catch(function(){});
   }
 
-  document.getElementById("new-topic-access").addEventListener("change", function(){
-    document.getElementById("new-topic-password").hidden = this.value !== "password";
+  var newTopicAccess = document.getElementById("new-topic-access");
+  var newTopicPwWrap = document.getElementById("new-topic-password-wrap");
+  var newTopicPw1 = document.getElementById("new-topic-password");
+  var newTopicPw2 = document.getElementById("new-topic-password2");
+  var refreshNewTopicPwStatus = bindPasswordPair(
+    newTopicPw1,
+    newTopicPw2,
+    document.getElementById("new-topic-pw-status"),
+    document.getElementById("new-topic-pw-toggle"),
+    function(){ return "请输入至少 4 位密码，并在右侧再次确认"; }
+  );
+
+  newTopicAccess.addEventListener("change", function(){
+    var isPw = this.value === "password";
+    newTopicPwWrap.hidden = !isPw;
+    if (isPw){
+      refreshNewTopicPwStatus();
+      newTopicPw1.focus();
+    }
   });
 
   document.getElementById("new-topic-btn").addEventListener("click", function(){
     var nameInput = document.getElementById("new-topic-name");
     var descInput = document.getElementById("new-topic-desc");
-    var accessSelect = document.getElementById("new-topic-access");
-    var passwordInput = document.getElementById("new-topic-password");
     var name = nameInput.value.trim();
     if (!name) return;
-    var body = { name: name, description: descInput.value.trim(), access_mode: accessSelect.value };
-    if (accessSelect.value === "password"){
-      var pw = passwordInput.value.trim();
+    var body = { name: name, description: descInput.value.trim(), access_mode: newTopicAccess.value };
+    if (newTopicAccess.value === "password"){
+      var pw = newTopicPw1.value.trim();
+      var pw2 = newTopicPw2.value.trim();
       if (pw.length < 4){ toast("密码至少 4 位"); return; }
+      if (pw !== pw2){ toast("两次输入的密码不一致"); return; }
       body.password = pw;
     }
     this.disabled = true; var self = this;
     api("/api/topics", { method: "POST", body: body })
       .then(function(t){
-        nameInput.value = ""; descInput.value = ""; passwordInput.value = "";
-        accessSelect.value = "public"; passwordInput.hidden = true;
+        nameInput.value = ""; descInput.value = "";
+        newTopicPw1.value = ""; newTopicPw2.value = "";
+        newTopicAccess.value = "public"; newTopicPwWrap.hidden = true;
+        refreshNewTopicPwStatus();
         return loadTopics().then(function(){ enterTopic(t); });
       })
       .catch(function(e){ toast(friendlyError(e)); })
@@ -844,6 +927,18 @@
   var topicSettingsPanel = document.getElementById("topic-settings-panel");
   var topicAccessSelect = document.getElementById("topic-access-select");
   var topicAccessPassword = document.getElementById("topic-access-password");
+  var topicAccessPassword2 = document.getElementById("topic-access-password2");
+  var refreshTopicPwStatus = bindPasswordPair(
+    topicAccessPassword,
+    topicAccessPassword2,
+    document.getElementById("topic-access-pw-status"),
+    document.getElementById("topic-access-pw-toggle"),
+    function(){
+      return state.currentTopicAccessMode === "password"
+        ? "留空表示保持原有密码不变"
+        : "请输入至少 4 位密码，并在右侧再次确认";
+    }
+  );
 
   function showTopicTitleView(){
     topicTitleView.hidden = false;
@@ -859,16 +954,21 @@
     topicSettingsPanel.hidden = false;
     topicAccessSelect.value = state.currentTopicAccessMode || "public";
     topicAccessPassword.value = "";
+    topicAccessPassword2.value = "";
     document.getElementById("topic-password-row").hidden = topicAccessSelect.value !== "password";
+    refreshTopicPwStatus();
     topicRenameInput.focus();
   }
   document.getElementById("topic-rename-btn").addEventListener("click", showTopicTitleEdit);
-  document.getElementById("topic-rename-cancel").addEventListener("click", function(){
+  function cancelTopicSettings(){
     showTopicTitleView();
     hideTopicSettingsPanel();
-  });
+  }
+  document.getElementById("topic-rename-cancel").addEventListener("click", cancelTopicSettings);
+  document.getElementById("topic-settings-cancel").addEventListener("click", cancelTopicSettings);
   topicAccessSelect.addEventListener("change", function(){
     document.getElementById("topic-password-row").hidden = this.value !== "password";
+    refreshTopicPwStatus();
   });
   function saveTopicSettings(){
     var name = topicRenameInput.value.trim();
@@ -876,9 +976,13 @@
     var body = { name: name };
     var newMode = topicAccessSelect.value;
     var pw = topicAccessPassword.value.trim();
+    var pw2 = topicAccessPassword2.value.trim();
+    if (newMode === "password" && (pw || pw2)){
+      if (pw.length < 4){ toast("密码至少 4 位"); return; }
+      if (pw !== pw2){ toast("两次输入的密码不一致"); return; }
+    }
     if (newMode !== state.currentTopicAccessMode || (newMode === "password" && pw)){
       if (newMode === "password" && !pw){ toast("切换成密码模式需要设置一个密码"); return; }
-      if (newMode === "password" && pw.length < 4){ toast("密码至少 4 位"); return; }
       body.access_mode = newMode;
       if (newMode === "password") body.password = pw;
     }
@@ -896,15 +1000,21 @@
       .catch(function(e){ toast(friendlyError(e)); });
   }
   document.getElementById("topic-rename-save").addEventListener("click", saveTopicSettings);
+  document.getElementById("topic-settings-save").addEventListener("click", saveTopicSettings);
   topicRenameInput.addEventListener("keydown", function(ev){
     if (ev.isComposing) return;
     if (ev.key === "Enter") saveTopicSettings();
-    if (ev.key === "Escape"){ showTopicTitleView(); hideTopicSettingsPanel(); }
+    if (ev.key === "Escape") cancelTopicSettings();
   });
   topicAccessPassword.addEventListener("keydown", function(ev){
     if (ev.isComposing) return;
     if (ev.key === "Enter") saveTopicSettings();
-    if (ev.key === "Escape"){ showTopicTitleView(); hideTopicSettingsPanel(); }
+    if (ev.key === "Escape") cancelTopicSettings();
+  });
+  topicAccessPassword2.addEventListener("keydown", function(ev){
+    if (ev.isComposing) return;
+    if (ev.key === "Enter") saveTopicSettings();
+    if (ev.key === "Escape") cancelTopicSettings();
   });
 
   function refreshMembers(){
