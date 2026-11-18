@@ -52,16 +52,66 @@ export function sessionCookie(token, maxAgeSeconds) {
   return attrs.join("; ");
 }
 
+var _migrated = false;
+var _migrationPromise = null;
+
+export async function ensureMigrations(env) {
+  if (_migrated) return;
+  if (_migrationPromise) return _migrationPromise;
+  _migrationPromise = (async function () {
+    var statements = [
+      "ALTER TABLE accounts ADD COLUMN bio TEXT NOT NULL DEFAULT ''",
+      "ALTER TABLE topics ADD COLUMN access_mode TEXT NOT NULL DEFAULT 'public'",
+      "ALTER TABLE topics ADD COLUMN join_password_salt TEXT",
+      "ALTER TABLE topics ADD COLUMN join_password_hash TEXT",
+      "ALTER TABLE topics ADD COLUMN title_prefix TEXT NOT NULL DEFAULT ''",
+      "ALTER TABLE topics ADD COLUMN mask_title INTEGER NOT NULL DEFAULT 0",
+      "CREATE TABLE IF NOT EXISTS join_requests (id TEXT PRIMARY KEY, topic_id TEXT NOT NULL, account_id TEXT NOT NULL, account_name TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'pending', created_at TEXT NOT NULL, decided_at TEXT, UNIQUE (topic_id, account_id))",
+      "CREATE INDEX IF NOT EXISTS idx_join_requests_topic ON join_requests(topic_id, status)",
+      "CREATE INDEX IF NOT EXISTS idx_join_requests_account ON join_requests(account_id)"
+    ];
+    for (var i = 0; i < statements.length; i++) {
+      try {
+        await env.DB.prepare(statements[i]).run();
+      } catch (e) {
+        // Ignore duplicate column errors if already applied
+      }
+    }
+    _migrated = true;
+  })();
+  try {
+    await _migrationPromise;
+  } finally {
+    _migrationPromise = null;
+  }
+}
+
+export async function withSchema(env, fn) {
+  try {
+    return await fn();
+  } catch (e) {
+    var causeMsg = e && e.cause ? String(e.cause.message || e.cause) : "";
+    var msg = String((e && e.message) || e || "") + " " + causeMsg;
+    if (!_migrated && (msg.indexOf("no such column") !== -1 || msg.indexOf("no such table") !== -1)) {
+      await ensureMigrations(env);
+      return await fn();
+    }
+    throw e;
+  }
+}
+
 // Returns { id, username, bio } for a valid, unexpired session cookie, else null.
 export async function getSessionAccount(request, env) {
   var cookies = parseCookies(request);
   var token = cookies.session;
   if (!token) return null;
-  var row = await env.DB.prepare(
-    "SELECT s.account_id AS id, a.username AS username, COALESCE(a.bio, '') AS bio " +
-    "FROM sessions s JOIN accounts a ON a.id = s.account_id " +
-    "WHERE s.token = ? AND s.expires_at > ?"
-  ).bind(token, new Date().toISOString()).first();
+  var row = await withSchema(env, function () {
+    return env.DB.prepare(
+      "SELECT s.account_id AS id, a.username AS username, COALESCE(a.bio, '') AS bio " +
+      "FROM sessions s JOIN accounts a ON a.id = s.account_id " +
+      "WHERE s.token = ? AND s.expires_at > ?"
+    ).bind(token, new Date().toISOString()).first();
+  });
   return row || null;
 }
 
@@ -83,20 +133,22 @@ export function maskTitle(name) {
 // Returns { topic, allowed, status } where status is 'approved' | 'pending' | 'rejected' | 'none'.
 // topic is null (and allowed false) when the topic doesn't exist.
 export async function getTopicAccess(env, topicId, accountId) {
-  var topic = await env.DB.prepare(
-    "SELECT id, name, description, created_by, created_at, access_mode, title_prefix, mask_title FROM topics WHERE id = ?"
-  ).bind(topicId).first();
-  if (!topic) return { topic: null, allowed: false, status: "not_found" };
+  return withSchema(env, async function () {
+    var topic = await env.DB.prepare(
+      "SELECT id, name, description, created_by, created_at, access_mode, title_prefix, mask_title FROM topics WHERE id = ?"
+    ).bind(topicId).first();
+    if (!topic) return { topic: null, allowed: false, status: "not_found" };
 
-  if (topic.access_mode === "public" || topic.created_by === accountId) {
-    return { topic: topic, allowed: true, status: "approved" };
-  }
+    if (topic.access_mode === "public" || topic.created_by === accountId) {
+      return { topic: topic, allowed: true, status: "approved" };
+    }
 
-  var req = await env.DB.prepare(
-    "SELECT status FROM join_requests WHERE topic_id = ? AND account_id = ?"
-  ).bind(topicId, accountId).first();
-  var status = req ? req.status : "none";
-  return { topic: topic, allowed: status === "approved", status: status };
+    var req = await env.DB.prepare(
+      "SELECT status FROM join_requests WHERE topic_id = ? AND account_id = ?"
+    ).bind(topicId, accountId).first();
+    var status = req ? req.status : "none";
+    return { topic: topic, allowed: status === "approved", status: status };
+  });
 }
 
 export function json(data, init) {

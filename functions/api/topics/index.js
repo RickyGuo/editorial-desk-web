@@ -1,4 +1,4 @@
-import { getSessionAccount, hashPassword, randomHex, maskTitle, json } from "../../_lib/auth.js";
+import { getSessionAccount, hashPassword, randomHex, maskTitle, withSchema, json } from "../../_lib/auth.js";
 
 // GET: list all topics. Every topic's name/description/access_mode is public
 // (so people can see it exists and decide whether to request access), but
@@ -8,17 +8,23 @@ import { getSessionAccount, hashPassword, randomHex, maskTitle, json } from "../
 export async function onRequestGet({ request, env }) {
   var account = await getSessionAccount(request, env);
 
-  var topics = (await env.DB.prepare(
-    "SELECT id, name, description, created_by, created_at, access_mode, COALESCE(title_prefix, '') AS title_prefix, COALESCE(mask_title, 0) AS mask_title FROM topics ORDER BY created_at ASC"
-  ).all()).results || [];
+  var data = await withSchema(env, async function () {
+    var topics = (await env.DB.prepare(
+      "SELECT id, name, description, created_by, created_at, access_mode, COALESCE(title_prefix, '') AS title_prefix, COALESCE(mask_title, 0) AS mask_title FROM topics ORDER BY created_at ASC"
+    ).all()).results || [];
 
-  var statusByTopic = {};
-  if (account) {
-    var reqs = (await env.DB.prepare(
-      "SELECT topic_id, status FROM join_requests WHERE account_id = ?"
-    ).bind(account.id).all()).results || [];
-    reqs.forEach(function (r) { statusByTopic[r.topic_id] = r.status; });
-  }
+    var statusByTopic = {};
+    if (account) {
+      var reqs = (await env.DB.prepare(
+        "SELECT topic_id, status FROM join_requests WHERE account_id = ?"
+      ).bind(account.id).all()).results || [];
+      reqs.forEach(function (r) { statusByTopic[r.topic_id] = r.status; });
+    }
+    return { topics: topics, statusByTopic: statusByTopic };
+  });
+
+  var topics = data.topics;
+  var statusByTopic = data.statusByTopic;
 
   topics.forEach(function (t) {
     var isCreator = !!(account && t.created_by === account.id);
@@ -68,9 +74,11 @@ export async function onRequestPost({ request, env }) {
 
   var id = crypto.randomUUID();
   var now = new Date().toISOString();
-  await env.DB.prepare(
-    "INSERT INTO topics (id, name, description, created_by, created_at, access_mode, join_password_salt, join_password_hash, title_prefix, mask_title) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-  ).bind(id, name, description, account.id, now, accessMode, saltHex, passwordHash, titlePrefix, maskTitleFlag).run();
+  await withSchema(env, function () {
+    return env.DB.prepare(
+      "INSERT INTO topics (id, name, description, created_by, created_at, access_mode, join_password_salt, join_password_hash, title_prefix, mask_title) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+    ).bind(id, name, description, account.id, now, accessMode, saltHex, passwordHash, titlePrefix, maskTitleFlag).run();
+  });
 
   return json({
     id: id,

@@ -1,4 +1,4 @@
-import { getSessionAccount, json } from "../../../../_lib/auth.js";
+import { getSessionAccount, withSchema, json } from "../../../../_lib/auth.js";
 
 // PATCH: { action: "approve" | "reject" }. Creator-only.
 export async function onRequestPatch({ request, params, env }) {
@@ -14,16 +14,19 @@ export async function onRequestPatch({ request, params, env }) {
   var action = body.action;
   if (action !== "approve" && action !== "reject") return json({ error: "bad_action" }, { status: 400 });
 
-  var reqRow = await env.DB.prepare(
-    "SELECT id FROM join_requests WHERE id = ? AND topic_id = ?"
-  ).bind(params.reqId, params.id).first();
-  if (!reqRow) return json({ error: "not_found" }, { status: 404 });
-
   var newStatus = action === "approve" ? "approved" : "rejected";
   var now = new Date().toISOString();
-  await env.DB.prepare(
-    "UPDATE join_requests SET status = ?, decided_at = ? WHERE id = ?"
-  ).bind(newStatus, now, reqRow.id).run();
+  var reqRow = await withSchema(env, async function () {
+    var row = await env.DB.prepare(
+      "SELECT id FROM join_requests WHERE id = ? AND topic_id = ?"
+    ).bind(params.reqId, params.id).first();
+    if (!row) return null;
+    await env.DB.prepare(
+      "UPDATE join_requests SET status = ?, decided_at = ? WHERE id = ?"
+    ).bind(newStatus, now, row.id).run();
+    return row;
+  });
+  if (!reqRow) return json({ error: "not_found" }, { status: 404 });
 
   return json({ ok: true, status: newStatus });
 }

@@ -1,4 +1,4 @@
-import { hashPassword, randomHex, sessionCookie, json } from "../_lib/auth.js";
+import { hashPassword, randomHex, sessionCookie, withSchema, json } from "../_lib/auth.js";
 
 export async function onRequestPost({ request, env }) {
   var body;
@@ -24,9 +24,11 @@ export async function onRequestPost({ request, env }) {
   var hash = await hashPassword(password, salt);
   var now = new Date().toISOString();
 
-  await env.DB.prepare(
-    "INSERT INTO accounts (id, username, email, bio, salt, password_hash, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)"
-  ).bind(key, rawUsername, email, bio, salt, hash, now).run();
+  await withSchema(env, function () {
+    return env.DB.prepare(
+      "INSERT INTO accounts (id, username, email, bio, salt, password_hash, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)"
+    ).bind(key, rawUsername, email, bio, salt, hash, now).run();
+  });
 
   var token = randomHex(32);
   var expires = new Date(Date.now() + 30 * 24 * 3600 * 1000).toISOString();

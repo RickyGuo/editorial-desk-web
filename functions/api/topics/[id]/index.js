@@ -1,4 +1,4 @@
-import { getSessionAccount, hashPassword, randomHex, json } from "../../../_lib/auth.js";
+import { getSessionAccount, hashPassword, randomHex, withSchema, json } from "../../../_lib/auth.js";
 
 // PATCH: rename a topic / change its description / change its access control.
 // Restricted to the topic's creator (the same "moderator" role already used
@@ -62,12 +62,13 @@ export async function onRequestPatch({ request, params, env }) {
   if (!sets.length) return json({ error: "nothing_to_update" }, { status: 400 });
 
   values.push(params.id);
-  var stmt = env.DB.prepare("UPDATE topics SET " + sets.join(", ") + " WHERE id = ?");
-  await stmt.bind.apply(stmt, values).run();
-
-  var updated = await env.DB.prepare(
-    "SELECT id, name, description, created_by, created_at, access_mode, COALESCE(title_prefix, '') AS title_prefix, COALESCE(mask_title, 0) AS mask_title FROM topics WHERE id = ?"
-  ).bind(params.id).first();
+  var updated = await withSchema(env, async function () {
+    var stmt = env.DB.prepare("UPDATE topics SET " + sets.join(", ") + " WHERE id = ?");
+    await stmt.bind.apply(stmt, values).run();
+    return env.DB.prepare(
+      "SELECT id, name, description, created_by, created_at, access_mode, COALESCE(title_prefix, '') AS title_prefix, COALESCE(mask_title, 0) AS mask_title FROM topics WHERE id = ?"
+    ).bind(params.id).first();
+  });
   updated.mask_title = !!updated.mask_title;
   updated.title_masked = false;
   updated.my_status = "approved";

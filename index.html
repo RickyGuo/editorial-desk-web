@@ -171,12 +171,29 @@
 
   .join-req-row{display:flex;align-items:center;gap:10px;padding-block:10px;border-top:1px solid var(--line)}
   .join-req-row:first-child{border-top:none}
-  .join-req-name{flex:1;min-width:0;font-weight:600;font-size:13.5px}
-  .join-req-time{font-size:11px;color:var(--ink-dim)}
+  .join-req-main{flex:1;min-width:0}
+  .join-req-name{font-weight:600;font-size:13.5px}
+  .join-req-bio{font-size:12px;color:var(--ink-dim);margin-top:2px;line-height:1.45;word-break:break-word}
+  .join-req-time{font-size:11px;color:var(--ink-dim);flex:none}
   .join-req-actions{flex:none;display:flex;gap:6px}
   .join-req-status{flex:none;font-size:11.5px;font-weight:700;padding:3px 9px;border-radius:999px}
   .join-req-status.approved{background:var(--done-ink);color:var(--done)}
   .join-req-status.rejected{background:var(--mark-ink);color:var(--mark)}
+
+  .prefix-row{display:flex;gap:8px;flex-wrap:wrap}
+  .prefix-row select{flex:1 1 160px;min-width:0}
+  .prefix-row input{flex:1.2 1 180px;min-width:0}
+  .prefix-badge{display:inline-flex;align-items:center;flex:none;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;line-height:1.4;letter-spacing:.2px;background:var(--accent-ink);color:var(--accent)}
+  .prefix-badge.is-updating{background:var(--accent-ink);color:var(--accent)}
+  .prefix-badge.is-done{background:var(--done-ink);color:var(--done)}
+  .prefix-badge.is-custom{background:var(--line);color:var(--ink)}
+  .check-row{display:flex!important;align-items:center;gap:8px;font-size:12.5px;color:var(--ink-dim);cursor:pointer;margin-bottom:0!important}
+  .check-row input[type=checkbox]{width:auto;flex:none;margin:0;accent-color:var(--accent)}
+  .tc-title-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:2px}
+  .tc-title-row h3{margin-bottom:0}
+  .tc-badge-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+  .tc-badge-row .tc-badge{margin-top:0}
+  .tc-badge.masked{background:var(--line);color:var(--ink-dim)}
 </style>
 </head>
 <body>
@@ -468,7 +485,7 @@
     });
   }
 
-  var VERSION = "v0.5.0";
+  var VERSION = "v0.5.1";
   var VERSION_DATE = "2026-11-18";
   document.getElementById("version-footer").textContent = "编辑部协作台 " + VERSION + " · " + VERSION_DATE;
 
@@ -607,6 +624,8 @@
     invalid_username: "用户名需 3-20 位，只能是字母、数字、下划线或短横线",
     invalid_email: "请填写有效邮箱",
     weak_password: "密码至少 6 位",
+    invalid_bio: "自我介绍至少需要 8 个字符",
+    bio_too_long: "自我介绍最多 200 个字符",
     username_taken: "用户名已被占用，换一个试试",
     missing_fields: "请输入用户名和密码",
     not_found: "用户名不存在",
@@ -624,12 +643,37 @@
     return (e && errorText[e.error]) || "操作失败，请稍后再试";
   }
 
+  var regBioInput = document.getElementById("reg-bio");
+  var regBioHint = document.getElementById("reg-bio-hint");
+  function updateRegBioHint(){
+    var len = Array.from(regBioInput.value.trim()).length;
+    if (!len){
+      regBioHint.className = "";
+      regBioHint.textContent = "至少 8 个字符（最多 200 字符）";
+    } else if (len < 8){
+      regBioHint.className = "warn";
+      regBioHint.textContent = "已输入 " + len + " 字，还差 " + (8 - len) + " 字";
+    } else {
+      regBioHint.className = "ok";
+      regBioHint.textContent = "已输入 " + len + " 字 ✓";
+    }
+  }
+  regBioInput.addEventListener("input", updateRegBioHint);
+  updateRegBioHint();
+
   document.getElementById("reg-btn").addEventListener("click", function(){
+    var bio = regBioInput.value.trim();
+    if (Array.from(bio).length < 8){
+      toast("自我介绍至少需要 8 个字符");
+      regBioInput.focus();
+      return;
+    }
     var btn = this; btn.disabled = true;
     api("/api/register", { method: "POST", body: {
       username: document.getElementById("reg-username").value.trim(),
       email: document.getElementById("reg-email").value.trim(),
-      password: document.getElementById("reg-password").value
+      password: document.getElementById("reg-password").value,
+      bio: bio
     }}).then(function(data){
       state.account = data;
       applyMeUI();
@@ -663,11 +707,25 @@
     }
     topicListEl.innerHTML = "";
     state.topics.forEach(function(t){
-      var card = el('<button type="button" class="topic-card"><div class="tc-main"><h3></h3><div class="tc-desc"></div></div><span class="tc-arrow">进入 →</span></button>');
+      var card = el('<button type="button" class="topic-card"><div class="tc-main"><div class="tc-title-row"><span class="prefix-badge" hidden></span><h3></h3></div><div class="tc-desc"></div></div><span class="tc-arrow">进入 →</span></button>');
+      applyPrefixBadge(card.querySelector(".prefix-badge"), t.title_prefix);
       card.querySelector("h3").textContent = t.name || "未命名主题";
       card.querySelector(".tc-desc").textContent = t.description || ("创建于 " + fmtTime(t.created_at));
+      var badges = [];
       var badge = topicBadge(t);
-      if (badge) card.querySelector(".tc-main").appendChild(badge);
+      if (badge) badges.push(badge);
+      if (t.title_masked){
+        var maskBadge = document.createElement("span");
+        maskBadge.className = "tc-badge masked";
+        maskBadge.textContent = "🙈 标题已隐藏部分字符";
+        badges.push(maskBadge);
+      }
+      if (badges.length){
+        var badgeRow = document.createElement("div");
+        badgeRow.className = "tc-badge-row";
+        badges.forEach(function(b){ badgeRow.appendChild(b); });
+        card.querySelector(".tc-main").appendChild(badgeRow);
+      }
       card.addEventListener("click", function(){ enterTopic(t); });
       topicListEl.appendChild(card);
     });
@@ -696,9 +754,19 @@
     return api("/api/topics").then(function(data){
       state.topics = data.topics || [];
       if (!screenHome.hidden) renderTopicList();
-    }).catch(function(){});
+    }).catch(function(e){
+      toast("加载主题列表失败，请刷新重试");
+      if (!screenHome.hidden && !state.topics.length){
+        topicListEl.innerHTML = '<div class="empty">加载主题失败，请刷新页面重试（已有数据不会丢失）。</div>';
+      }
+    });
   }
 
+  var newTopicPrefixControl = bindPrefixControl(
+    document.getElementById("new-topic-prefix"),
+    document.getElementById("new-topic-prefix-custom")
+  );
+  var newTopicMask = document.getElementById("new-topic-mask");
   var newTopicAccess = document.getElementById("new-topic-access");
   var newTopicPwWrap = document.getElementById("new-topic-password-wrap");
   var newTopicPw1 = document.getElementById("new-topic-password");
@@ -725,7 +793,13 @@
     var descInput = document.getElementById("new-topic-desc");
     var name = nameInput.value.trim();
     if (!name) return;
-    var body = { name: name, description: descInput.value.trim(), access_mode: newTopicAccess.value };
+    var body = {
+      name: name,
+      description: descInput.value.trim(),
+      title_prefix: newTopicPrefixControl.getValue(),
+      mask_title: !!newTopicMask.checked,
+      access_mode: newTopicAccess.value
+    };
     if (newTopicAccess.value === "password"){
       var pw = newTopicPw1.value.trim();
       var pw2 = newTopicPw2.value.trim();
@@ -737,6 +811,8 @@
     api("/api/topics", { method: "POST", body: body })
       .then(function(t){
         nameInput.value = ""; descInput.value = "";
+        newTopicPrefixControl.setValue("");
+        newTopicMask.checked = false;
         newTopicPw1.value = ""; newTopicPw2.value = "";
         newTopicAccess.value = "public"; newTopicPwWrap.hidden = true;
         refreshNewTopicPwStatus();
@@ -1469,7 +1545,10 @@
       } else {
         showScreen("auth");
       }
-    }).catch(function(){ showScreen("auth"); });
+    }).catch(function(e){
+      if (e && e.status >= 500) toast("连接服务器失败，请稍后刷新重试");
+      showScreen("auth");
+    });
   }
 
   boot();
