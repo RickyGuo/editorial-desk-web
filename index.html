@@ -412,8 +412,8 @@
     });
   }
 
-  var VERSION = "v0.4.0";
-  var VERSION_DATE = "2026-09-26";
+  var VERSION = "v0.4.1";
+  var VERSION_DATE = "2026-11-18";
   document.getElementById("version-footer").textContent = "编辑部协作台 " + VERSION + " · " + VERSION_DATE;
 
   var state = {
@@ -629,6 +629,20 @@
     if (state.msgPoller){ clearInterval(state.msgPoller); state.msgPoller = null; }
   }
 
+  function pollTick(){
+    if (document.hidden || !state.currentTopicId) return;
+    if (state.currentTopicMyStatus === "approved"){
+      refreshMembers();
+      refreshActiveTab();
+    } else {
+      checkJoinStatus();
+    }
+  }
+
+  document.addEventListener("visibilitychange", function(){
+    if (!document.hidden && state.currentTopicId) pollTick();
+  });
+
   function exitTopic(){
     stopTopicPolling();
     state.currentTopicId = null;
@@ -665,7 +679,7 @@
     document.getElementById("topic-content").hidden = false;
     showTab("board");
     refreshMembers();
-    state.msgPoller = setInterval(function(){ refreshMembers(); refreshActiveTab(); }, 4000);
+    state.msgPoller = setInterval(pollTick, 4000);
   }
 
   // ---------- access gate (password / creator-approval topics) ----------
@@ -684,11 +698,11 @@
     // Keep checking in the background so the gate clears itself the moment
     // access is granted (password success is immediate; approval needs the
     // creator to act, possibly while this tab is sitting open).
-    if (!state.msgPoller) state.msgPoller = setInterval(checkJoinStatus, 4000);
+    if (!state.msgPoller) state.msgPoller = setInterval(pollTick, 4000);
   }
 
   function checkJoinStatus(){
-    if (!state.currentTopicId || state.currentTopicMyStatus === "approved") return;
+    if (document.hidden || !state.currentTopicId || state.currentTopicMyStatus === "approved") return;
     api("/api/topics/" + state.currentTopicId + "/join").then(function(data){
       if (data.status && data.status !== state.currentTopicMyStatus){
         state.currentTopicMyStatus = data.status;
@@ -717,7 +731,7 @@
       var row = el('<div class="row"><input type="text" id="gate-password-input" placeholder="输入密码"><button type="button" class="btn primary sm" id="gate-password-btn">进入</button></div>');
       formEl.appendChild(row);
       document.getElementById("gate-password-btn").addEventListener("click", submitGatePassword);
-      document.getElementById("gate-password-input").addEventListener("keydown", function(ev){ if (ev.key === "Enter") submitGatePassword(); });
+      document.getElementById("gate-password-input").addEventListener("keydown", function(ev){ if (ev.key === "Enter" && !ev.isComposing) submitGatePassword(); });
     } else if (mode === "approval"){
       if (status === "pending"){
         iconEl.textContent = "⏳";
@@ -764,7 +778,7 @@
           enterTopicContent();
         } else {
           renderGate();
-          if (!state.msgPoller) state.msgPoller = setInterval(checkJoinStatus, 4000);
+          if (!state.msgPoller) state.msgPoller = setInterval(pollTick, 4000);
         }
       })
       .catch(function(e){ toast(friendlyError(e)); });
@@ -883,6 +897,12 @@
   }
   document.getElementById("topic-rename-save").addEventListener("click", saveTopicSettings);
   topicRenameInput.addEventListener("keydown", function(ev){
+    if (ev.isComposing) return;
+    if (ev.key === "Enter") saveTopicSettings();
+    if (ev.key === "Escape"){ showTopicTitleView(); hideTopicSettingsPanel(); }
+  });
+  topicAccessPassword.addEventListener("keydown", function(ev){
+    if (ev.isComposing) return;
     if (ev.key === "Enter") saveTopicSettings();
     if (ev.key === "Escape"){ showTopicTitleView(); hideTopicSettingsPanel(); }
   });
@@ -926,7 +946,7 @@
       var input = document.getElementById("nick-input");
       if (input && !input.value) input.value = state.account.username || "";
       document.getElementById("nick-save").addEventListener("click", saveNickname);
-      input.addEventListener("keydown", function(ev){ if (ev.key === "Enter") saveNickname(); });
+      input.addEventListener("keydown", function(ev){ if (ev.key === "Enter" && !ev.isComposing) saveNickname(); });
     } else {
       var chip = el('<div class="nickname-chip"><span></span><button>改名</button></div>');
       chip.querySelector("span").textContent = "我在这里是「" + mine.nickname + "」";
@@ -944,6 +964,7 @@
     document.getElementById("nick-save").addEventListener("click", saveNickname);
     document.getElementById("nick-cancel").addEventListener("click", function(){ state.editingNickname = false; renderNicknameArea(); });
     input.addEventListener("keydown", function(ev){
+      if (ev.isComposing) return;
       if (ev.key === "Enter") saveNickname();
       if (ev.key === "Escape"){ state.editingNickname = false; renderNicknameArea(); }
     });
@@ -996,6 +1017,13 @@
       .then(function(){ input.value = ""; refreshMessages(); })
       .catch(function(e){ toast(friendlyError(e)); })
       .finally(function(){ btn.disabled = false; });
+  });
+  document.getElementById("msg-input").addEventListener("keydown", function(ev){
+    if (ev.isComposing) return;
+    if (ev.key === "Enter" && (ev.metaKey || ev.ctrlKey)){
+      ev.preventDefault();
+      document.getElementById("msg-send").click();
+    }
   });
 
   // ---------- RELAY CHECKLISTS ----------
@@ -1075,7 +1103,7 @@
           .catch(function(e){ toast(friendlyError(e)); });
       }
       addBtn.addEventListener("click", submitAdd);
-      addInput.addEventListener("keydown", function(ev){ if (ev.key === "Enter") submitAdd(); });
+      addInput.addEventListener("keydown", function(ev){ if (ev.key === "Enter" && !ev.isComposing) submitAdd(); });
       wrap.appendChild(addRow);
 
       relayListEl.appendChild(wrap);
