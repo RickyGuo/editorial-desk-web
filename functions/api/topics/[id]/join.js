@@ -6,17 +6,25 @@ export async function onRequestGet({ request, params, env }) {
   if (!account) return json({ error: "unauthorized" }, { status: 401 });
 
   var topic = await env.DB.prepare(
-    "SELECT id, access_mode, created_by FROM topics WHERE id = ?"
+    "SELECT id, name, description, access_mode, created_by, COALESCE(title_prefix, '') AS title_prefix, COALESCE(mask_title, 0) AS mask_title FROM topics WHERE id = ?"
   ).bind(params.id).first();
   if (!topic) return json({ error: "not_found" }, { status: 404 });
 
+  var unlockedTopic = {
+    name: topic.name,
+    description: topic.description || "",
+    title_prefix: topic.title_prefix || "",
+    mask_title: !!topic.mask_title
+  };
+
   if (topic.access_mode === "public" || topic.created_by === account.id) {
-    return json({ status: "approved" });
+    return json({ status: "approved", topic: unlockedTopic });
   }
   var req = await env.DB.prepare(
     "SELECT status FROM join_requests WHERE topic_id = ? AND account_id = ?"
   ).bind(params.id, account.id).first();
-  return json({ status: req ? req.status : "none" });
+  var st = req ? req.status : "none";
+  return json(st === "approved" ? { status: "approved", topic: unlockedTopic } : { status: st });
 }
 
 // POST: request access to a restricted topic.
@@ -29,12 +37,19 @@ export async function onRequestPost({ request, params, env }) {
   if (!account) return json({ error: "unauthorized" }, { status: 401 });
 
   var topic = await env.DB.prepare(
-    "SELECT id, access_mode, created_by, join_password_salt, join_password_hash FROM topics WHERE id = ?"
+    "SELECT id, name, description, access_mode, created_by, join_password_salt, join_password_hash, COALESCE(title_prefix, '') AS title_prefix, COALESCE(mask_title, 0) AS mask_title FROM topics WHERE id = ?"
   ).bind(params.id).first();
   if (!topic) return json({ error: "not_found" }, { status: 404 });
 
+  var unlockedTopic = {
+    name: topic.name,
+    description: topic.description || "",
+    title_prefix: topic.title_prefix || "",
+    mask_title: !!topic.mask_title
+  };
+
   if (topic.access_mode === "public" || topic.created_by === account.id) {
-    return json({ status: "approved" });
+    return json({ status: "approved", topic: unlockedTopic });
   }
 
   var now = new Date().toISOString();
@@ -52,14 +67,14 @@ export async function onRequestPost({ request, params, env }) {
       "INSERT INTO join_requests (id, topic_id, account_id, account_name, status, created_at, decided_at) VALUES (?, ?, ?, ?, 'approved', ?, ?) " +
       "ON CONFLICT(topic_id, account_id) DO UPDATE SET status = 'approved', decided_at = excluded.decided_at"
     ).bind(id1, params.id, account.id, account.username, now, now).run();
-    return json({ status: "approved" });
+    return json({ status: "approved", topic: unlockedTopic });
   }
 
   if (topic.access_mode === "approval") {
     var existing = await env.DB.prepare(
       "SELECT status FROM join_requests WHERE topic_id = ? AND account_id = ?"
     ).bind(params.id, account.id).first();
-    if (existing && existing.status === "approved") return json({ status: "approved" });
+    if (existing && existing.status === "approved") return json({ status: "approved", topic: unlockedTopic });
     if (existing && existing.status === "pending") return json({ status: "pending" });
 
     var id2 = crypto.randomUUID();

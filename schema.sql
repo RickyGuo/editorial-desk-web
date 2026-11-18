@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS accounts (
   id TEXT PRIMARY KEY,          -- normalized (lowercase) username, used as the account id everywhere
   username TEXT UNIQUE NOT NULL,-- original casing, for display
   email TEXT NOT NULL,
+  bio TEXT NOT NULL DEFAULT '',
   salt TEXT NOT NULL,
   password_hash TEXT NOT NULL,
   created_at TEXT NOT NULL
@@ -32,7 +33,9 @@ CREATE TABLE IF NOT EXISTS topics (
   created_at TEXT NOT NULL,
   access_mode TEXT NOT NULL DEFAULT 'public',  -- public | password | approval
   join_password_salt TEXT,
-  join_password_hash TEXT
+  join_password_hash TEXT,
+  title_prefix TEXT NOT NULL DEFAULT '',
+  mask_title INTEGER NOT NULL DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS members (

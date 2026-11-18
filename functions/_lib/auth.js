@@ -52,17 +52,28 @@ export function sessionCookie(token, maxAgeSeconds) {
   return attrs.join("; ");
 }
 
-// Returns { id, username } for a valid, unexpired session cookie, else null.
+// Returns { id, username, bio } for a valid, unexpired session cookie, else null.
 export async function getSessionAccount(request, env) {
   var cookies = parseCookies(request);
   var token = cookies.session;
   if (!token) return null;
   var row = await env.DB.prepare(
-    "SELECT s.account_id AS id, a.username AS username " +
+    "SELECT s.account_id AS id, a.username AS username, COALESCE(a.bio, '') AS bio " +
     "FROM sessions s JOIN accounts a ON a.id = s.account_id " +
     "WHERE s.token = ? AND s.expires_at > ?"
   ).bind(token, new Date().toISOString()).first();
   return row || null;
+}
+
+export function maskTitle(name) {
+  var chars = Array.from((name || "").trim());
+  var len = chars.length;
+  if (len <= 1) return "*";
+  if (len === 2) return chars[0] + "*";
+  if (len === 3) return chars[0] + "*" + chars[2];
+  if (len === 4) return chars[0] + "**" + chars[3];
+  var keep = len >= 6 ? 2 : 1;
+  return chars.slice(0, keep).join("") + "*".repeat(len - keep * 2) + chars.slice(len - keep).join("");
 }
 
 // Resolves whether `accountId` may see a topic's content.
@@ -73,7 +84,7 @@ export async function getSessionAccount(request, env) {
 // topic is null (and allowed false) when the topic doesn't exist.
 export async function getTopicAccess(env, topicId, accountId) {
   var topic = await env.DB.prepare(
-    "SELECT id, name, description, created_by, created_at, access_mode FROM topics WHERE id = ?"
+    "SELECT id, name, description, created_by, created_at, access_mode, title_prefix, mask_title FROM topics WHERE id = ?"
   ).bind(topicId).first();
   if (!topic) return { topic: null, allowed: false, status: "not_found" };
 

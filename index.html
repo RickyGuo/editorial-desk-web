@@ -208,6 +208,8 @@
           <input type="text" id="reg-username" placeholder="用户名（3-20位字母、数字、下划线）" autocomplete="username">
           <input type="email" id="reg-email" placeholder="邮箱" autocomplete="email">
           <input type="password" id="reg-password" placeholder="设置密码（至少6位）" autocomplete="new-password">
+          <textarea id="reg-bio" rows="2" maxlength="200" placeholder="自我介绍（至少 8 个字符，例如：负责高中英语编辑，擅长校对）"></textarea>
+          <div class="pw-hint"><span id="reg-bio-hint">至少 8 个字符</span></div>
           <div class="row end"><button class="btn primary" id="reg-btn">注册</button></div>
         </div>
       </div>
@@ -233,6 +235,15 @@
           <input type="text" id="new-topic-name" placeholder="主题名称，例如「高考写作书更新组」">
           <input type="text" id="new-topic-desc" placeholder="一句话说明（可选）">
         </div>
+        <div class="prefix-row">
+          <select id="new-topic-prefix">
+            <option value="" selected>标题前缀：无</option>
+            <option value="更新中">标题前缀：更新中</option>
+            <option value="完结">标题前缀：完结</option>
+            <option value="__custom__">自定义前缀…</option>
+          </select>
+          <input type="text" id="new-topic-prefix-custom" maxlength="20" placeholder="输入自定义前缀（如：草稿、紧急）" hidden>
+        </div>
         <div>
           <select id="new-topic-access">
             <option value="public" selected>公开 — 任何账户都能直接进入</option>
@@ -250,6 +261,7 @@
             <button type="button" class="pw-toggle" id="new-topic-pw-toggle">隐藏密码</button>
           </div>
         </div>
+        <label class="check-row"><input type="checkbox" id="new-topic-mask"> 隐藏标题中间的部分字符（非楼主 / 未解锁只看到打码标题）</label>
         <div class="row end"><button class="btn primary" id="new-topic-btn">创建主题</button></div>
       </div>
     </div>
@@ -264,6 +276,7 @@
       <div class="topic-head-left">
         <button class="back-btn" id="back-btn" aria-label="返回主题列表">←</button>
         <div class="topic-title" id="topic-title-view">
+          <span class="prefix-badge" id="topic-title-prefix" hidden></span>
           <h2 id="topic-title-text">主题</h2>
           <button type="button" class="btn ghost sm" id="topic-rename-btn" hidden>设置</button>
         </div>
@@ -278,7 +291,20 @@
 
     <div class="settings-panel" id="topic-settings-panel" hidden>
       <div class="settings-row">
-        <label>加入方式</label>
+        <label>标题前缀</label>
+        <div class="prefix-row">
+          <select id="topic-prefix-select">
+            <option value="">无前缀</option>
+            <option value="更新中">更新中</option>
+            <option value="完结">完结</option>
+            <option value="__custom__">自定义…</option>
+          </select>
+          <input type="text" id="topic-prefix-custom" maxlength="20" placeholder="输入自定义前缀" hidden>
+        </div>
+      </div>
+      <label class="check-row"><input type="checkbox" id="topic-mask-checkbox"> 隐藏标题中间的部分字符（非楼主 / 未解锁只看到打码标题）</label>
+      <div class="settings-row">
+        <label>加入方式（公开主题也可随时改为加密）</label>
         <select id="topic-access-select">
           <option value="public">公开 — 任何账户都能直接进入</option>
           <option value="password">需要密码才能加入</option>
@@ -442,9 +468,48 @@
     });
   }
 
-  var VERSION = "v0.4.2";
+  var VERSION = "v0.5.0";
   var VERSION_DATE = "2026-11-18";
   document.getElementById("version-footer").textContent = "编辑部协作台 " + VERSION + " · " + VERSION_DATE;
+
+  function applyPrefixBadge(el, prefix){
+    var p = (prefix || "").trim();
+    if (!p){
+      el.hidden = true;
+      el.textContent = "";
+      el.className = "prefix-badge";
+      return;
+    }
+    el.hidden = false;
+    el.textContent = p;
+    el.className = "prefix-badge " + (p === "更新中" ? "is-updating" : (p === "完结" ? "is-done" : "is-custom"));
+  }
+
+  function bindPrefixControl(selectEl, customEl){
+    selectEl.addEventListener("change", function(){
+      var isCustom = this.value === "__custom__";
+      customEl.hidden = !isCustom;
+      if (isCustom) customEl.focus();
+    });
+    return {
+      getValue: function(){
+        if (selectEl.value === "__custom__") return customEl.value.trim();
+        return selectEl.value;
+      },
+      setValue: function(val){
+        var p = (val || "").trim();
+        if (!p || p === "更新中" || p === "完结"){
+          selectEl.value = p;
+          customEl.value = "";
+          customEl.hidden = true;
+        } else {
+          selectEl.value = "__custom__";
+          customEl.value = p;
+          customEl.hidden = false;
+        }
+      }
+    };
+  }
 
   function bindPasswordPair(input1, input2, statusEl, toggleBtn, getEmptyText){
     function updateStatus(){
@@ -495,6 +560,8 @@
     editingNickname: false,
     currentTopicAccessMode: "public",
     currentTopicMyStatus: "approved",
+    currentTopicPrefix: "",
+    currentTopicMaskTitle: false,
     msgPoller: null, topicPoller: null
   };
 
@@ -741,6 +808,20 @@
     document.getElementById("tab-btn-requests").hidden = !(isTopicCreator() && state.currentTopicAccessMode === "approval");
   }
 
+  function applyUnlockedTopicInfo(topicData){
+    if (!topicData) return;
+    if (typeof topicData.name === "string"){
+      document.getElementById("topic-title-text").textContent = topicData.name || "主题";
+    }
+    if (typeof topicData.title_prefix === "string"){
+      state.currentTopicPrefix = topicData.title_prefix;
+      applyPrefixBadge(document.getElementById("topic-title-prefix"), state.currentTopicPrefix);
+    }
+    if (typeof topicData.mask_title === "boolean"){
+      state.currentTopicMaskTitle = topicData.mask_title;
+    }
+  }
+
   function enterTopic(topic){
     stopTopicPolling();
     state.editingNickname = false;
@@ -748,6 +829,9 @@
     state.currentTopicCreatedBy = topic.created_by;
     state.currentTopicAccessMode = topic.access_mode || "public";
     state.currentTopicMyStatus = topic.my_status || "approved";
+    state.currentTopicPrefix = topic.title_prefix || "";
+    state.currentTopicMaskTitle = !!topic.mask_title;
+    applyPrefixBadge(document.getElementById("topic-title-prefix"), state.currentTopicPrefix);
     document.getElementById("topic-title-text").textContent = topic.name || "主题";
     showTopicTitleView();
     hideTopicSettingsPanel();
@@ -791,6 +875,7 @@
         state.currentTopicMyStatus = data.status;
         if (data.status === "approved"){
           stopTopicPolling();
+          applyUnlockedTopicInfo(data.topic);
           toast("已获得访问权限");
           enterTopicContent();
         } else {
@@ -844,6 +929,7 @@
         state.currentTopicMyStatus = data.status;
         if (data.status === "approved"){
           stopTopicPolling();
+          applyUnlockedTopicInfo(data.topic);
           toast("验证成功");
           enterTopicContent();
         }
@@ -857,6 +943,7 @@
         state.currentTopicMyStatus = data.status;
         if (data.status === "approved"){
           stopTopicPolling();
+          applyUnlockedTopicInfo(data.topic);
           toast("已加入");
           enterTopicContent();
         } else {
@@ -888,9 +975,14 @@
     pending.concat(decided).forEach(function(r){
       var row = el('<div class="join-req-row"></div>');
       row.appendChild(avatarChip(r.account_name));
-      var nameEl = el('<div class="join-req-name"></div>');
-      nameEl.textContent = r.account_name;
-      row.appendChild(nameEl);
+      var mainEl = el('<div class="join-req-main"><div class="join-req-name"></div></div>');
+      mainEl.querySelector(".join-req-name").textContent = r.account_name;
+      if (r.account_bio){
+        var bioEl = el('<div class="join-req-bio"></div>');
+        bioEl.textContent = "自我介绍：" + r.account_bio;
+        mainEl.appendChild(bioEl);
+      }
+      row.appendChild(mainEl);
       var timeEl = el('<div class="join-req-time"></div>');
       timeEl.textContent = fmtTime(r.created_at);
       row.appendChild(timeEl);
@@ -919,12 +1011,18 @@
       .catch(function(e){ toast(friendlyError(e)); });
   }
 
-  // ---------- topic settings (rename + access control) ----------
+  // ---------- topic settings (rename + access control + prefix + mask) ----------
   var topicTitleView = document.getElementById("topic-title-view");
   var topicTitleEdit = document.getElementById("topic-title-edit");
+  var topicTitlePrefix = document.getElementById("topic-title-prefix");
   var topicTitleText = document.getElementById("topic-title-text");
   var topicRenameInput = document.getElementById("topic-rename-input");
   var topicSettingsPanel = document.getElementById("topic-settings-panel");
+  var topicPrefixControl = bindPrefixControl(
+    document.getElementById("topic-prefix-select"),
+    document.getElementById("topic-prefix-custom")
+  );
+  var topicMaskCheckbox = document.getElementById("topic-mask-checkbox");
   var topicAccessSelect = document.getElementById("topic-access-select");
   var topicAccessPassword = document.getElementById("topic-access-password");
   var topicAccessPassword2 = document.getElementById("topic-access-password2");
@@ -952,6 +1050,8 @@
     topicTitleView.hidden = true;
     topicTitleEdit.hidden = false;
     topicSettingsPanel.hidden = false;
+    topicPrefixControl.setValue(state.currentTopicPrefix);
+    topicMaskCheckbox.checked = !!state.currentTopicMaskTitle;
     topicAccessSelect.value = state.currentTopicAccessMode || "public";
     topicAccessPassword.value = "";
     topicAccessPassword2.value = "";
@@ -973,7 +1073,11 @@
   function saveTopicSettings(){
     var name = topicRenameInput.value.trim();
     if (!name || !state.currentTopicId) return;
-    var body = { name: name };
+    var body = {
+      name: name,
+      title_prefix: topicPrefixControl.getValue(),
+      mask_title: !!topicMaskCheckbox.checked
+    };
     var newMode = topicAccessSelect.value;
     var pw = topicAccessPassword.value.trim();
     var pw2 = topicAccessPassword2.value.trim();
@@ -989,6 +1093,9 @@
     api("/api/topics/" + state.currentTopicId, { method: "PATCH", body: body })
       .then(function(t){
         topicTitleText.textContent = t.name || name;
+        state.currentTopicPrefix = t.title_prefix || "";
+        state.currentTopicMaskTitle = !!t.mask_title;
+        applyPrefixBadge(topicTitlePrefix, state.currentTopicPrefix);
         state.currentTopicAccessMode = t.access_mode || "public";
         state.currentTopicMyStatus = "approved";
         updateRequestsTabVisibility();
@@ -1002,6 +1109,11 @@
   document.getElementById("topic-rename-save").addEventListener("click", saveTopicSettings);
   document.getElementById("topic-settings-save").addEventListener("click", saveTopicSettings);
   topicRenameInput.addEventListener("keydown", function(ev){
+    if (ev.isComposing) return;
+    if (ev.key === "Enter") saveTopicSettings();
+    if (ev.key === "Escape") cancelTopicSettings();
+  });
+  document.getElementById("topic-prefix-custom").addEventListener("keydown", function(ev){
     if (ev.isComposing) return;
     if (ev.key === "Enter") saveTopicSettings();
     if (ev.key === "Escape") cancelTopicSettings();

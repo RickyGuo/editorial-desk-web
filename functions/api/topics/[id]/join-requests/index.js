@@ -10,7 +10,9 @@ export async function onRequestGet({ request, params, env }) {
   if (topic.created_by !== account.id) return json({ error: "forbidden" }, { status: 403 });
 
   var rows = (await env.DB.prepare(
-    "SELECT id, account_id, account_name, status, created_at, decided_at FROM join_requests WHERE topic_id = ? ORDER BY created_at ASC"
+    "SELECT jr.id, jr.account_id, jr.account_name, jr.status, jr.created_at, jr.decided_at, COALESCE(a.bio, '') AS account_bio " +
+    "FROM join_requests jr LEFT JOIN accounts a ON a.id = jr.account_id " +
+    "WHERE jr.topic_id = ? ORDER BY jr.created_at ASC"
   ).bind(params.id).all()).results || [];
 
   return json({ requests: rows });

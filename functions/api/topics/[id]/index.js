@@ -29,6 +29,14 @@ export async function onRequestPatch({ request, params, env }) {
   if (typeof body.description === "string") {
     sets.push("description = ?"); values.push(body.description.trim());
   }
+  if (typeof body.title_prefix === "string") {
+    sets.push("title_prefix = ?");
+    values.push(Array.from(body.title_prefix.trim()).slice(0, 20).join(""));
+  }
+  if (typeof body.mask_title === "boolean") {
+    sets.push("mask_title = ?");
+    values.push(body.mask_title ? 1 : 0);
+  }
 
   if (typeof body.access_mode === "string") {
     var mode = body.access_mode;
@@ -58,8 +66,10 @@ export async function onRequestPatch({ request, params, env }) {
   await stmt.bind.apply(stmt, values).run();
 
   var updated = await env.DB.prepare(
-    "SELECT id, name, description, created_by, created_at, access_mode FROM topics WHERE id = ?"
+    "SELECT id, name, description, created_by, created_at, access_mode, COALESCE(title_prefix, '') AS title_prefix, COALESCE(mask_title, 0) AS mask_title FROM topics WHERE id = ?"
   ).bind(params.id).first();
+  updated.mask_title = !!updated.mask_title;
+  updated.title_masked = false;
   updated.my_status = "approved";
   return json(updated);
 }
